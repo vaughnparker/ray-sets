@@ -35,7 +35,7 @@ The forgetful map $(R,\nu) \mapsto R$ is what relates the two notions, and it is
 |---|---|---|---|---|
 | $(R_6, \nu \equiv 4)$ | 6 cube-face rays | 4 | $O$, order 24 | 3x3x3 |
 | $(R_6, \nu \equiv 2)$ | 6 cube-face rays | 2 | $D_2$, order 4 | tetrahedral edge-turning |
-| $(R_6, \nu = 4,4,2)$ | 6 cube-face rays | mixed | $D_4$, order 8 | **3x3x2 Domino** |
+| $(R_6, \nu = 4,2,2)$ | 6 cube-face rays | mixed | $D_4$, order 8 | **3x3x2 Domino** |
 
 Same ray-set all three times; three different turning systems. And note the third row: mixed $\nu$ within one ray-set is legal as long as equivariance holds — $\nu$ must be constant on $G$-orbits, and once two axes are restricted to 180°, the orbit structure changes to permit exactly this. That's the Domino, and it falls out of the definition rather than needing a special case.
 
