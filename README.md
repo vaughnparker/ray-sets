@@ -27,7 +27,7 @@ reasons worth understanding: see [Beyond the 16](#beyond-the-16).
 For the formal definitions (and the finer notion of a *turning system*), see
 [`intro.md`](intro.md). This file is the practical tour.
 
-![The 16 distinct ray-sets](raysets_distinct.png)
+![The 16 distinct ray-sets](1_ray_sets/raysets_distinct.png)
 
 ## The 16
 
@@ -94,7 +94,7 @@ The 16 are the ray-sets whose symmetry is **polyhedral** — T, O, or I. Two oth
 kinds of symmetry exist in 3D, and it's worth being precise about what they
 contribute, because the two behave very differently:
 
-![The non-polyhedral families](raysets_infinite.png)
+![The non-polyhedral families](1_ray_sets/raysets_infinite.png)
 
 - **Prisms (dihedral, $D_n$)** — genuinely infinite. Its ray families come out as
   sizes $2, n, n$, for $2n+2$ rays in total, and the geometry really does change
@@ -184,12 +184,17 @@ textbook treatment of the finite subgroups of $SO(3)$.
 
 ## The code
 
-Four small files. The scripts need only NumPy and matplotlib; the notebook also
-needs `ipywidgets` and `ipympl` for its interactive controls.
+The scripts need only NumPy and matplotlib; the notebook also needs `ipywidgets`
+and `ipympl` for its interactive controls.
 
 ```bash
 pip install -r requirements.txt
 ```
+
+The repository is organised as three investigations, in reading order — the
+directions you can turn, then how far, then where you cut:
+
+### [`1_ray_sets/`](1_ray_sets) — the 16
 
 | file | what it does |
 |---|---|
@@ -199,10 +204,25 @@ pip install -r requirements.txt
 | `preview.py` | regenerates the three montage images |
 
 ```bash
+cd 1_ray_sets
 python raysets.py     # print all 21, then the de-duplication report
 python rayview.py     # open the interactive viewer
 python preview.py     # rebuild the three montage PNGs
 ```
+
+### [`2_turning_systems/`](2_turning_systems) — the 21
+
+Adds *how far* each ray may turn. See
+[`turning_systems.md`](2_turning_systems/turning_systems.md) for the result.
+
+```bash
+cd 2_turning_systems
+python turning_systems.py
+```
+
+### [`3_cut_depths/`](3_cut_depths) — where you cut
+
+Not written yet. This is where the count stops being finite.
 
 Nothing is hard-coded. The groups are closed from two rotations each, the families
 are found as orbits, and the 21 → 16 collapse is **proved** rather than asserted:
