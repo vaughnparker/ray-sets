@@ -1,6 +1,6 @@
 # ray-sets
 
-Every twisty-puzzle axis system that can possibly exist — enumerated, verified, and
+Every twisty-puzzle axis system with polyhedral symmetry — enumerated, verified, and
 drawn.
 
 A **ray-set** is the skeleton of a twisty puzzle: the set of directions you can turn
@@ -10,8 +10,19 @@ the colours, the stickers, the cutting depth, and this is what remains.
 
 The one rule a ray-set must obey is physical: **spin the whole set around any one of
 its own rays, and it has to land back on itself.** If some ray lands where no ray
-was before, a turn would drive a piece into solid plastic and the puzzle jams. That
-single constraint turns out to be ferocious — it admits exactly **16** ray-sets.
+was before, a turn would drive a piece into solid plastic and the puzzle jams.
+
+That single constraint turns out to be ferocious:
+
+> **Every twisty puzzle built on polyhedral symmetry — including every one nobody
+> has invented yet — has one of exactly 16 axis systems. There is no seventeenth.**
+
+Note what kind of claim that is. It is not a survey of puzzles people have made; it
+is a statement about the **unbuilt**. Someone could design a genuinely novel puzzle
+tomorrow, and its axis geometry is already on the list below.
+
+Two non-polyhedral families — prisms and turntables — sit outside this count, for
+reasons worth understanding: see [Beyond the 16](#beyond-the-16).
 
 For the formal definitions (and the finer notion of a *turning system*), see
 [`intro.md`](intro.md). This file is the practical tour.
@@ -25,9 +36,10 @@ Ray-sets are built from three symmetry shapes — **T** (tetrahedral), **O**
 ray-set is any non-empty combination of whole families. Labels below are the ones
 the tools print: `O · 6+8` means "shape O, the 6-family plus the 8-family."
 
-For **O**, the families are the cube's 6 faces, 8 corners, 12 edges. For **I**,
-the dodecahedron's 12 faces, 20 corners, 30 edges. For **T**, the tetrahedron's 4
-corners and 6 edges.
+For **O**, the families are the cube's 6 faces, 8 corners, 12 edges. For **I**, the
+dodecahedron's 12 faces, 20 corners, 30 edges. For **T**, the tetrahedron's 4
+corners, 4 faces and 6 edges — though only two of T's seven combinations survive
+de-duplication, for reasons given below.
 
 ### Octahedral — 7
 
@@ -58,13 +70,16 @@ corners and 6 edges.
 | label | rays | puzzles |
 |---|---|---|
 | `T · 4a` | 4 | **Pyraminx**, Pyraminx Duo, Halpern-Meier Tetrahedron |
-| `T · 4a+6` | 10 | Pyramorphix family, jumbling tetrahedra |
+| `T · 4a+6` | 10 | jumbling tetrahedra — no standard commercial example |
 
 **A note on the examples.** The geometry is exact; the puzzle names are not a
 guarantee that a thing exists on a shelf. The multi-family rows in particular —
 14, 18, 20, 26, 42, 50 — are seldom built physically, and often live only as
 one-off customs or in simulators. A ray-set says a mechanism is geometrically
 coherent, not that anyone has moulded the plastic.
+
+Unlike the geometry, these names have **not** been individually verified against a
+puzzle database — treat them as pointers rather than citations.
 
 **Why only 2 from T.** The tetrahedron has three families (4 corners, 4 faces, 6
 edges), so it starts with 7 combinations like the others. Five of them turn out to
@@ -141,7 +156,8 @@ enormously as puzzles. That is the degeneracy, about as concretely as it gets.
 
 - **How far each ray turns.** A 3x3x3 and a 3x3x2 Domino have the same six-ray set.
 - **How many parallel layers you cut.** A 2x2x2, 3x3x3, 4x4x4 and 7x7x7 all have the
-  identical ray-set, `O · 6` — as do a 1x1x2 and a 1x1x100.
+  identical ray-set, `O · 6`. A 1x1x2 and a 1x1x100 likewise match each other — at
+  2 rays, not 6.
 - **How deep the cuts go.** Shallow- and deep-cut versions of the same axes agree.
 
 That omission is load-bearing, not sloppiness: it's what makes the list finite and
