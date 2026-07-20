@@ -1,0 +1,6 @@
+numpy
+matplotlib
+
+# Only needed for the interactive notebook (rayview.ipynb):
+ipywidgets
+ipympl

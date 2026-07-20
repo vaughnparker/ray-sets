@@ -1,0 +1,14 @@
+# Kept locally, not published — earlier drafts and the notebook-in-progress.
+old/
+
+# Saved terminal output — regenerate with `python raysets.py`
+dedup.txt
+
+# Python
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Editor / tooling settings
+.vscode/
+.claude/
