@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The 16 twisty-puzzle ray-sets</title>
+<style>
+  :root{
+    --bg:#f5f4ef; --panel:#ffffff; --ink:#2c2c2a; --muted:#6b6a64;
+    --line:#dcdad2; --hi:#e9e7df; --accent:#534ab7;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+  #app{display:flex;height:100vh;overflow:hidden}
+  #sidebar{width:260px;flex:none;border-right:1px solid var(--line);background:var(--panel);overflow-y:auto;padding:14px 0}
+  #sidebar h1{font-size:15px;font-weight:600;margin:6px 16px 2px}
+  #sidebar .sub{font-size:12px;color:var(--muted);margin:0 16px 12px;line-height:1.5}
+  .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:14px 16px 6px;font-weight:600}
+  .item{display:flex;align-items:center;gap:8px;padding:7px 16px;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-size:13px;color:var(--ink)}
+  .item:hover{background:var(--hi)}
+  .item.active{background:var(--accent);color:#fff}
+  .item .n{font-variant-numeric:tabular-nums;font-weight:600;min-width:26px}
+  .item .p{color:var(--muted);font-size:12px}
+  .item.active .p{color:#e5e3f7}
+  #stage{flex:1;position:relative;min-width:0}
+  #canvas-wrap{position:absolute;inset:0}
+  #hud{position:absolute;left:18px;top:16px;pointer-events:none}
+  #hud .title{font-size:20px;font-weight:600}
+  #hud .meta{font-size:13px;color:var(--muted);margin-top:2px}
+  #legend{position:absolute;left:18px;bottom:16px;background:rgba(255,255,255,.86);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;backdrop-filter:blur(4px)}
+  #legend .row{display:flex;align-items:center;gap:8px;margin:3px 0}
+  #legend .sw{width:12px;height:12px;border-radius:3px;flex:none}
+  #hint{position:absolute;right:16px;bottom:16px;font-size:12px;color:var(--muted)}
+  @media (max-width:640px){#sidebar{width:200px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="sidebar">
+    <h1>The 16 ray-sets</h1>
+    <p class="sub">Every face/vertex/edge axis system with polyhedral symmetry. Drag to rotate.</p>
+    <div id="list"></div>
+  </div>
+  <div id="stage">
+    <div id="canvas-wrap"></div>
+    <div id="hud"><div class="title" id="t-title">–</div><div class="meta" id="t-meta"></div></div>
+    <div id="legend"></div>
+    <div id="hint">drag to rotate · scroll to zoom</div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const DATA = {"sets":[{"id":"O \u00b7 6 rays","family":"O","wireframe":"cube","count":6,"combo":[0],"puzzle":"3\u00d73\u00d73 cube","arrows":[{"dir":[0.0,0.0,1.0],"kind":"face","orbit":0},{"dir":[1.0,0.0,0.0],"kind":"face","orbit":0},{"dir":[-0.0,1.0,0.0],"kind":"face","orbit":0},{"dir":[-1.0,-0.0,-0.0],"kind":"face","orbit":0},{"dir":[0.0,-1.0,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.0,-1.0],"kind":"face","orbit":0}]},{"id":"O \u00b7 8 rays","family":"O","wireframe":"cube","count":8,"combo":[1],"puzzle":"Skewb / FTO","arrows":[{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1}]},{"id":"O \u00b7 12 rays","family":"O","wireframe":"cube","count":12,"combo":[2],"puzzle":"Helicopter","arrows":[{"dir":[-0.0,0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[-0.0,-0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,-0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[0.707107,0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,0.707107,0.0],"kind":"edge","orbit":2},{"dir":[0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,0.707107,-0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.707107,0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,-0.707107,-0.707107],"kind":"edge","orbit":2}]},{"id":"O \u00b7 14 rays","family":"O","wireframe":"cube","count":14,"combo":[0,1],"puzzle":"face+corner","arrows":[{"dir":[0.0,0.0,1.0],"kind":"face","orbit":0},{"dir":[1.0,0.0,0.0],"kind":"face","orbit":0},{"dir":[-0.0,1.0,0.0],"kind":"face","orbit":0},{"dir":[-1.0,-0.0,-0.0],"kind":"face","orbit":0},{"dir":[0.0,-1.0,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.0,-1.0],"kind":"face","orbit":0},{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1}]},{"id":"O \u00b7 18 rays","family":"O","wireframe":"cube","count":18,"combo":[0,2],"puzzle":"face+edge","arrows":[{"dir":[0.0,0.0,1.0],"kind":"face","orbit":0},{"dir":[1.0,0.0,0.0],"kind":"face","orbit":0},{"dir":[-0.0,1.0,0.0],"kind":"face","orbit":0},{"dir":[-1.0,-0.0,-0.0],"kind":"face","orbit":0},{"dir":[0.0,-1.0,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.0,-1.0],"kind":"face","orbit":0},{"dir":[-0.0,0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[-0.0,-0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,-0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[0.707107,0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,0.707107,0.0],"kind":"edge","orbit":2},{"dir":[0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,0.707107,-0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.707107,0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,-0.707107,-0.707107],"kind":"edge","orbit":2}]},{"id":"O \u00b7 20 rays","family":"O","wireframe":"cube","count":20,"combo":[1,2],"puzzle":"corner+edge","arrows":[{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.0,0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[-0.0,-0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,-0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[0.707107,0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,0.707107,0.0],"kind":"edge","orbit":2},{"dir":[0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,0.707107,-0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.707107,0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,-0.707107,-0.707107],"kind":"edge","orbit":2}]},{"id":"O \u00b7 26 rays","family":"O","wireframe":"cube","count":26,"combo":[0,1,2],"puzzle":"all octahedral","arrows":[{"dir":[0.0,0.0,1.0],"kind":"face","orbit":0},{"dir":[1.0,0.0,0.0],"kind":"face","orbit":0},{"dir":[-0.0,1.0,0.0],"kind":"face","orbit":0},{"dir":[-1.0,-0.0,-0.0],"kind":"face","orbit":0},{"dir":[0.0,-1.0,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.0,-1.0],"kind":"face","orbit":0},{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.0,0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,0.0,0.707107],"kind":"edge","orbit":2},{"dir":[-0.0,-0.707107,0.707107],"kind":"edge","orbit":2},{"dir":[0.707107,-0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[0.707107,0.707107,-0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,0.707107,0.0],"kind":"edge","orbit":2},{"dir":[0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,0.707107,-0.707107],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.707107,0.0],"kind":"edge","orbit":2},{"dir":[-0.707107,-0.0,-0.707107],"kind":"edge","orbit":2},{"dir":[0.0,-0.707107,-0.707107],"kind":"edge","orbit":2}]},{"id":"I \u00b7 12 rays","family":"I","wireframe":"dodecahedron","count":12,"combo":[0],"puzzle":"Megaminx","arrows":[{"dir":[0.0,0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.850651,0.0,0.525731],"kind":"face","orbit":0},{"dir":[0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,0.525731],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[0.850651,0.0,-0.525731],"kind":"face","orbit":0},{"dir":[0.0,0.525731,-0.850651],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,-0.525731],"kind":"face","orbit":0},{"dir":[-0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,-0.850651],"kind":"face","orbit":0}]},{"id":"I \u00b7 20 rays","family":"I","wireframe":"dodecahedron","count":20,"combo":[1],"puzzle":"Starminx I","arrows":[{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1}]},{"id":"I \u00b7 30 rays","family":"I","wireframe":"dodecahedron","count":30,"combo":[2],"puzzle":"edge-turning","arrows":[{"dir":[-0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.0,0.0,-1.0],"kind":"edge","orbit":2},{"dir":[0.0,-1.0,-0.0],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-1.0,0.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[1.0,-0.0,-0.0],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.0,1.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-0.0,-0.0,1.0],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,0.5],"kind":"edge","orbit":2}]},{"id":"I \u00b7 32 rays","family":"I","wireframe":"dodecahedron","count":32,"combo":[0,1],"puzzle":"Tuttminx","arrows":[{"dir":[0.0,0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.850651,0.0,0.525731],"kind":"face","orbit":0},{"dir":[0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,0.525731],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[0.850651,0.0,-0.525731],"kind":"face","orbit":0},{"dir":[0.0,0.525731,-0.850651],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,-0.525731],"kind":"face","orbit":0},{"dir":[-0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,-0.850651],"kind":"face","orbit":0},{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1}]},{"id":"I \u00b7 42 rays","family":"I","wireframe":"dodecahedron","count":42,"combo":[0,2],"puzzle":"face+edge","arrows":[{"dir":[0.0,0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.850651,0.0,0.525731],"kind":"face","orbit":0},{"dir":[0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,0.525731],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[0.850651,0.0,-0.525731],"kind":"face","orbit":0},{"dir":[0.0,0.525731,-0.850651],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,-0.525731],"kind":"face","orbit":0},{"dir":[-0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,-0.850651],"kind":"face","orbit":0},{"dir":[-0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.0,0.0,-1.0],"kind":"edge","orbit":2},{"dir":[0.0,-1.0,-0.0],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-1.0,0.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[1.0,-0.0,-0.0],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.0,1.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-0.0,-0.0,1.0],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,0.5],"kind":"edge","orbit":2}]},{"id":"I \u00b7 50 rays","family":"I","wireframe":"dodecahedron","count":50,"combo":[1,2],"puzzle":"corner+edge","arrows":[{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.0,0.0,-1.0],"kind":"edge","orbit":2},{"dir":[0.0,-1.0,-0.0],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-1.0,0.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[1.0,-0.0,-0.0],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.0,1.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-0.0,-0.0,1.0],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,0.5],"kind":"edge","orbit":2}]},{"id":"I \u00b7 62 rays","family":"I","wireframe":"dodecahedron","count":62,"combo":[0,1,2],"puzzle":"all icosahedral","arrows":[{"dir":[0.0,0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.850651,0.0,0.525731],"kind":"face","orbit":0},{"dir":[0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.525731,0.850651,0.0],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,0.525731],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,0.850651],"kind":"face","orbit":0},{"dir":[0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[0.850651,0.0,-0.525731],"kind":"face","orbit":0},{"dir":[0.0,0.525731,-0.850651],"kind":"face","orbit":0},{"dir":[-0.850651,-0.0,-0.525731],"kind":"face","orbit":0},{"dir":[-0.525731,-0.850651,-0.0],"kind":"face","orbit":0},{"dir":[-0.0,-0.525731,-0.850651],"kind":"face","orbit":0},{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,-0.934172],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[-0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.0,-0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,-0.356822,0.0],"kind":"vertex","orbit":1},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":1},{"dir":[0.934172,0.356822,-0.0],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,-0.356822],"kind":"vertex","orbit":1},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.0,0.934172,0.356822],"kind":"vertex","orbit":1},{"dir":[-0.356822,-0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.356822,0.0,0.934172],"kind":"vertex","orbit":1},{"dir":[0.57735,0.57735,0.57735],"kind":"vertex","orbit":1},{"dir":[-0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.0,0.0,-1.0],"kind":"edge","orbit":2},{"dir":[0.0,-1.0,-0.0],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-1.0,0.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.309017,-0.809017,0.5],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,-0.809017],"kind":"edge","orbit":2},{"dir":[1.0,-0.0,-0.0],"kind":"edge","orbit":2},{"dir":[0.809017,-0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,-0.5],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,-0.309017],"kind":"edge","orbit":2},{"dir":[-0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[-0.0,1.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.5,-0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[-0.309017,0.809017,0.5],"kind":"edge","orbit":2},{"dir":[-0.0,-0.0,1.0],"kind":"edge","orbit":2},{"dir":[0.809017,0.5,0.309017],"kind":"edge","orbit":2},{"dir":[0.5,0.309017,0.809017],"kind":"edge","orbit":2},{"dir":[0.309017,0.809017,0.5],"kind":"edge","orbit":2}]},{"id":"T \u00b7 4 rays","family":"T","wireframe":"tetrahedron","count":4,"combo":[0],"puzzle":"Pyraminx","arrows":[{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":0},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":0},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":0},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":0}]},{"id":"T \u00b7 10 rays","family":"T","wireframe":"tetrahedron","count":10,"combo":[0,2],"puzzle":"jumbling tetra","arrows":[{"dir":[-0.57735,-0.57735,-0.57735],"kind":"vertex","orbit":0},{"dir":[-0.57735,0.57735,0.57735],"kind":"vertex","orbit":0},{"dir":[0.57735,-0.57735,0.57735],"kind":"vertex","orbit":0},{"dir":[0.57735,0.57735,-0.57735],"kind":"vertex","orbit":0},{"dir":[1.0,0.0,0.0],"kind":"edge","orbit":2},{"dir":[-0.0,1.0,-0.0],"kind":"edge","orbit":2},{"dir":[-0.0,0.0,1.0],"kind":"edge","orbit":2},{"dir":[0.0,-1.0,0.0],"kind":"edge","orbit":2},{"dir":[0.0,-0.0,-1.0],"kind":"edge","orbit":2},{"dir":[-1.0,-0.0,-0.0],"kind":"edge","orbit":2}]}],"wire":{"cube":[[[-0.92376,-0.92376,-0.92376],[-0.92376,-0.92376,0.92376]],[[-0.92376,-0.92376,-0.92376],[-0.92376,0.92376,-0.92376]],[[-0.92376,-0.92376,-0.92376],[0.92376,-0.92376,-0.92376]],[[-0.92376,-0.92376,0.92376],[-0.92376,0.92376,0.92376]],[[-0.92376,-0.92376,0.92376],[0.92376,-0.92376,0.92376]],[[-0.92376,0.92376,-0.92376],[-0.92376,0.92376,0.92376]],[[-0.92376,0.92376,-0.92376],[0.92376,0.92376,-0.92376]],[[-0.92376,0.92376,0.92376],[0.92376,0.92376,0.92376]],[[0.92376,-0.92376,-0.92376],[0.92376,-0.92376,0.92376]],[[0.92376,-0.92376,-0.92376],[0.92376,0.92376,-0.92376]],[[0.92376,-0.92376,0.92376],[0.92376,0.92376,0.92376]],[[0.92376,0.92376,-0.92376],[0.92376,0.92376,0.92376]]],"tetrahedron":[[[0.92376,0.92376,0.92376],[0.92376,-0.92376,-0.92376]],[[0.92376,0.92376,0.92376],[-0.92376,0.92376,-0.92376]],[[0.92376,0.92376,0.92376],[-0.92376,-0.92376,0.92376]],[[0.92376,-0.92376,-0.92376],[-0.92376,0.92376,-0.92376]],[[0.92376,-0.92376,-0.92376],[-0.92376,-0.92376,0.92376]],[[-0.92376,0.92376,-0.92376],[-0.92376,-0.92376,0.92376]]],"dodecahedron":[[[-0.92376,-0.92376,-0.92376],[0.0,-0.57092,-1.49468]],[[-0.92376,-0.92376,-0.92376],[-0.57092,-1.49468,0.0]],[[-0.92376,-0.92376,-0.92376],[-1.49468,0.0,-0.57092]],[[-0.92376,-0.92376,0.92376],[-0.57092,-1.49468,0.0]],[[-0.92376,-0.92376,0.92376],[0.0,-0.57092,1.49468]],[[-0.92376,-0.92376,0.92376],[-1.49468,0.0,0.57092]],[[-0.92376,0.92376,-0.92376],[-1.49468,0.0,-0.57092]],[[-0.92376,0.92376,-0.92376],[-0.57092,1.49468,0.0]],[[-0.92376,0.92376,-0.92376],[0.0,0.57092,-1.49468]],[[-0.92376,0.92376,0.92376],[-0.57092,1.49468,0.0]],[[-0.92376,0.92376,0.92376],[-1.49468,0.0,0.57092]],[[-0.92376,0.92376,0.92376],[0.0,0.57092,1.49468]],[[0.92376,-0.92376,-0.92376],[0.0,-0.57092,-1.49468]],[[0.92376,-0.92376,-0.92376],[0.57092,-1.49468,0.0]],[[0.92376,-0.92376,-0.92376],[1.49468,0.0,-0.57092]],[[0.92376,-0.92376,0.92376],[0.0,-0.57092,1.49468]],[[0.92376,-0.92376,0.92376],[0.57092,-1.49468,0.0]],[[0.92376,-0.92376,0.92376],[1.49468,0.0,0.57092]],[[0.92376,0.92376,-0.92376],[0.0,0.57092,-1.49468]],[[0.92376,0.92376,-0.92376],[1.49468,0.0,-0.57092]],[[0.92376,0.92376,-0.92376],[0.57092,1.49468,0.0]],[[0.92376,0.92376,0.92376],[0.0,0.57092,1.49468]],[[0.92376,0.92376,0.92376],[0.57092,1.49468,0.0]],[[0.92376,0.92376,0.92376],[1.49468,0.0,0.57092]],[[0.0,-0.57092,-1.49468],[0.0,0.57092,-1.49468]],[[-0.57092,-1.49468,0.0],[0.57092,-1.49468,0.0]],[[-1.49468,0.0,-0.57092],[-1.49468,0.0,0.57092]],[[0.0,-0.57092,1.49468],[0.0,0.57092,1.49468]],[[-0.57092,1.49468,0.0],[0.57092,1.49468,0.0]],[[1.49468,0.0,-0.57092],[1.49468,0.0,0.57092]]]},"meta":{"O":[{"size":6,"kind":"face"},{"size":8,"kind":"vertex"},{"size":12,"kind":"edge"}],"I":[{"size":12,"kind":"face"},{"size":20,"kind":"vertex"},{"size":30,"kind":"edge"}],"T":[{"size":4,"kind":"vertex"},{"size":4,"kind":"face"},{"size":6,"kind":"edge"}]}};
+const COL = {
+  face:   0x534ab7,
+  vertex: 0x1d9e75,
+  edge:   0xd85a30
+};
+const KIND_LABEL = {face:"face axes", vertex:"vertex axes", edge:"edge axes"};
+
+let scene, camera, renderer, group, raf;
+const wrap = document.getElementById('canvas-wrap');
+
+function initThree(){
+  scene = new THREE.Scene();
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  camera = new THREE.PerspectiveCamera(42, w/h, 0.1, 100);
+  camera.position.set(3.2, 2.4, 4.2);
+  camera.lookAt(0,0,0);
+  renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+  renderer.setSize(w,h);
+  wrap.appendChild(renderer.domElement);
+  const amb = new THREE.AmbientLight(0xffffff, .85); scene.add(amb);
+  const dir = new THREE.DirectionalLight(0xffffff, .5); dir.position.set(5,8,6); scene.add(dir);
+  addOrbitControls();
+  animate();
+}
+
+// minimal trackball-style controls (no external dep)
+let rotX=0.5, rotY=0.7, dist=6.0, dragging=false, px=0, py=0;
+function addOrbitControls(){
+  const el = renderer.domElement;
+  el.addEventListener('pointerdown', e=>{dragging=true;px=e.clientX;py=e.clientY;el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointerup', e=>{dragging=false;});
+  el.addEventListener('pointermove', e=>{
+    if(!dragging) return;
+    rotY += (e.clientX-px)*0.008;
+    rotX += (e.clientY-py)*0.008;
+    rotX = Math.max(-1.4, Math.min(1.4, rotX));
+    px=e.clientX; py=e.clientY;
+  });
+  el.addEventListener('wheel', e=>{e.preventDefault(); dist*=(1+Math.sign(e.deltaY)*0.08); dist=Math.max(3,Math.min(14,dist));}, {passive:false});
+}
+function animate(){
+  raf=requestAnimationFrame(animate);
+  const cx=Math.cos(rotX), sx=Math.sin(rotX), cy=Math.cos(rotY), sy=Math.sin(rotY);
+  camera.position.set(dist*cx*sy, dist*sx, dist*cx*cy);
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+
+function clearGroup(){ if(group){scene.remove(group); group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});} group=new THREE.Group(); scene.add(group);}
+
+function addWireframe(edges){
+  const mat = new THREE.LineBasicMaterial({color:0xb4b2a9, transparent:true, opacity:.65});
+  const g = new THREE.BufferGeometry();
+  const pts=[];
+  edges.forEach(e=>{ pts.push(...e[0], ...e[1]); });
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pts,3));
+  group.add(new THREE.LineSegments(g, mat));
+}
+
+function addArrow(dir, color){
+  const R=1.6;
+  const end = new THREE.Vector3(dir[0],dir[1],dir[2]).normalize().multiplyScalar(R);
+  // shaft
+  const shaftMat = new THREE.LineBasicMaterial({color});
+  const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), end.clone().multiplyScalar(0.86)]);
+  group.add(new THREE.Line(g, shaftMat));
+  // cone head
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.055, 0.18, 12),
+                              new THREE.MeshBasicMaterial({color}));
+  cone.position.copy(end.clone().multiplyScalar(0.92));
+  cone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), end.clone().normalize());
+  group.add(cone);
+  // tip dot
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.045,10,10), new THREE.MeshBasicMaterial({color}));
+  dot.position.copy(end); group.add(dot);
+}
+
+function render(set){
+  clearGroup();
+  addWireframe(DATA.wire[set.wireframe]);
+  set.arrows.forEach(a=> addArrow(a.dir, COL[a.kind]));
+  document.getElementById('t-title').textContent = set.id;
+  const kinds = {};
+  set.arrows.forEach(a=> kinds[a.kind]=(kinds[a.kind]||0)+1);
+  const parts = Object.entries(kinds).map(([k,n])=>`${n} ${KIND_LABEL[k]}`);
+  document.getElementById('t-meta').textContent = `${set.count} rays · ${set.puzzle} · ${parts.join(' + ')}`;
+  // legend
+  const leg = document.getElementById('legend');
+  leg.innerHTML='';
+  Object.keys(kinds).forEach(k=>{
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<span class="sw" style="background:#${COL[k].toString(16).padStart(6,'0')}"></span>${KIND_LABEL[k]} (${kinds[k]})`;
+    leg.appendChild(row);
+  });
+}
+
+function buildList(){
+  const list=document.getElementById('list');
+  const fams=[['O','Octahedral (cube / octahedron)'],['I','Icosahedral (dodeca / icosa)'],['T','Tetrahedral']];
+  fams.forEach(([f,label])=>{
+    const h=document.createElement('div'); h.className='grp'; h.textContent=label; list.appendChild(h);
+    DATA.sets.filter(s=>s.family===f).forEach(s=>{
+      const b=document.createElement('button'); b.className='item'; b.dataset.id=s.id;
+      b.innerHTML=`<span class="n">${s.count}</span><span>rays</span><span class="p">${s.puzzle}</span>`;
+      b.onclick=()=>{ document.querySelectorAll('.item').forEach(x=>x.classList.remove('active')); b.classList.add('active'); render(s); };
+      list.appendChild(b);
+    });
+  });
+}
+
+window.addEventListener('resize', ()=>{
+  const w=wrap.clientWidth,h=wrap.clientHeight;
+  camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h);
+});
+
+initThree();
+buildList();
+const first=document.querySelector('.item'); first.classList.add('active'); render(DATA.sets[0]);
+</script>
+</body>
+</html>

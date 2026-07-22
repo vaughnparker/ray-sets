@@ -179,8 +179,12 @@ group actions.
 What this repository adds is not the theorem but the *working out*: casting the
 result in terms of ray-sets, enumerating the 21 candidates, verifying the collapse
 to 16 with explicit maps rather than assertion, and letting you look at every one of
-them. If you want the underlying mathematics properly, go to Klein — or to any
-textbook treatment of the finite subgroups of $SO(3)$.
+them.
+
+For the theorem itself — its history and a full proof written for a reader with only
+high-school maths — see [`klein.md`](klein.md). It derives
+$\sum_i (1 - 1/n_i) = 2 - 2/N$ from scratch and solves it, showing why $C_n$, $D_n$,
+$T$, $O$ and $I$ are the *only* possibilities.
 
 ## The code
 
@@ -209,6 +213,35 @@ python raysets.py     # print all 21, then the de-duplication report
 python rayview.py     # open the interactive viewer
 python preview.py     # rebuild the three montage PNGs
 ```
+
+Two further ways to *see* the same 16, each in its own subfolder with a script,
+an interactive notebook, and a montage:
+
+#### [`1_ray_sets/polyhedra/`](1_ray_sets/polyhedra) — as solids
+
+Every ray-set is the face set of one convex polyhedron: put a plane perpendicular to
+each ray and a face appears for every ray. `O · 6` is a cube, `O · 8` an octahedron,
+`I · 12` a dodecahedron — the Megaminx. The combinations give the truncated solids
+(`I · 12+20` is the soccer ball). Faces are coloured by ray family.
+
+![The 16 face-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra.png)
+
+The **dual** construction — the convex hull of the ray tips — makes each ray a
+*vertex* instead of a face, giving the vertex-turning polyhedron. `O · 6` becomes an
+octahedron, `I · 12` an icosahedron. It is the same axis system seen the other way
+up; the notebook toggles between the two.
+
+![The 16 vertex-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra_dual.png)
+
+#### [`1_ray_sets/great_circles/`](1_ray_sets/great_circles) — as cuts
+
+For each ray, the great circle perpendicular to it is where the deepest cut about
+that axis meets the sphere — so this is the puzzle's cut pattern rather than its
+axes. The circles carve the sphere into regions, and those are the pieces of the
+deepest-cut puzzle: `O · 6` → 8 (a 2x2x2), `I · 12` → 32 (the Pentultimate). The
+count is exact, from Euler's $V - E + F = 2$.
+
+![The 16 great-circle arrangements](1_ray_sets/great_circles/raysets_great_circles.png)
 
 ### [`2_turning_systems/`](2_turning_systems) — the 21
 
