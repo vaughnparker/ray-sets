@@ -60,6 +60,12 @@ a claim that he alone discovered it. The proof we give below is the standard mod
 one and appears in any first course in group theory. It is not Klein's original
 argument, but it reaches his conclusion.
 
+The same proof, told for the same audience of puzzlers, already exists on the web:
+Jaap Scherphuis's [*Group Theory for Puzzles*](https://www.jaapsch.net/puzzles/groups.htm)
+classifies the finite rotation groups by the identical pole-counting argument and
+arrives at the same equation. His version reaches it through Burnside's orbit-counting
+lemma; below we do the counting by hand instead, to keep the machinery out of the way.
+
 ## The key idea: poles
 
 Here is the one geometric move the whole proof rests on.
@@ -177,11 +183,8 @@ $2/N$ is $n_1 = n_2 = N$. Two families, each a single pole fixed by everything: 
 two ends of one axis. Every rotation shares that axis — this is the **turntable**
 $C_N$, and it exists for every $N$.
 
-**Three families.** Now the equation reads
-
-$$\frac{1}{n_1} + \frac{1}{n_2} + \frac{1}{n_3} = 1 + \frac{2}{N},$$
-
-which is more than $1$. Order them $n_1 \le n_2 \le n_3$.
+**Three families.** Now $\frac{1}{n_1} + \frac{1}{n_2} + \frac{1}{n_3} = 1 +
+\frac{2}{N}$, which is more than $1$. Order them $n_1 \le n_2 \le n_3$.
 
 - If the smallest were $3$ or more, three such fractions couldn't exceed $1$. So
   $n_1 = 2$. That leaves $\frac{1}{n_2} + \frac{1}{n_3} = \frac12 + \frac{2}{N}$.
