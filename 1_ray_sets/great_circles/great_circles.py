@@ -18,6 +18,10 @@ Euler's V - E + F = 2 and is exact.
 Prints circle / vertex / region counts and writes raysets_great_circles.png.  The
 geometry is plain NumPy, so a notebook can import this without touching its
 backend.
+
+Prior art: Jaap Scherphuis's interactive "Sphere" tool
+(https://www.jaapsch.net/puzzles/sphere.htm, 2003/2018) had this idea two decades
+earlier — a sphere with symmetric cut planes and per-family depth sliders.
 """
 import os
 import sys
