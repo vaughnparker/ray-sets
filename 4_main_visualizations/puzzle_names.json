@@ -1,0 +1,21 @@
+{
+  "Dodecahedron - corners (Radiolarian)": [
+    {"id": "1.5", "name": "Radio Canon", "ext_hist": {"1": 20, "2": 30, "3": 60, "4": 60, "5": 12}},
+    {"id": "2", "name": "Circo-Radiolarian", "ext_hist": {"2": 30, "3": 60, "4": 60, "5": 12}},
+    {"id": "3", "name": "Radiolarian 3", "ext_hist": {"2": 30, "3": 60, "4": 80, "5": 12}},
+    {"id": "4", "name": "Eitan's Star", "ext_hist": {"3": 60, "4": 80, "5": 12}},
+    {"id": "4.5", "name": "Eitan's Cat", "ext_hist": {"3": 60, "4": 80, "5": 132, "6": 30}},
+    {"id": "5", "name": "Cat's Cradle", "ext_hist": {"4": 80, "5": 132, "6": 30}},
+    {"id": "6", "name": "Radio Web", "ext_hist": {"4": 80, "5": 132, "6": 90}},
+    {"id": "7", "name": "Radio Jewel", "ext_hist": {"4": 20, "5": 132, "6": 90}},
+    {"id": "8", "name": "Radio Jam", "ext_hist": {"4": 20, "5": 132, "6": 90, "7": 60}},
+    {"id": "8.5", "name": "Radio Victoria", "ext_hist": {"4": 20, "5": 132, "6": 90, "7": 60, "8": 30}},
+    {"id": "9", "name": "Radio Crystal", "ext_hist": {"5": 12, "6": 60, "7": 60, "8": 30}},
+    {"id": "10", "name": "Radio Nova", "ext_hist": {"5": 12, "6": 60, "7": 60, "8": 90, "9": 120, "10": 20}},
+    {"id": "11", "name": "Radio Star", "ext_hist": {"7": 60, "8": 90, "9": 120, "10": 20}},
+    {"id": "12", "name": "Radio Nebula", "ext_hist": {"7": 60, "8": 90, "9": 180, "10": 32}},
+    {"id": "13", "name": "Radio Gem", "ext_hist": {"8": 90, "9": 180, "10": 32}},
+    {"id": "14", "name": "Radio Fathom", "ext_hist": {"8": 90, "9": 180, "10": 92}},
+    {"id": "15", "name": "Radio Chop", "ext_hist": {"10": 92}}
+  ]
+}

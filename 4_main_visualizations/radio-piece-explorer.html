@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Twisty puzzle pieces per cut depth (sphere)</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  #app{display:flex;height:100vh;overflow:hidden;}
+  #view{flex:1;position:relative;}
+  #panel{width:60%;background:var(--panel);padding:18px;overflow-y:auto;border-left:1px solid #222a37;}
+  h1{font-size:15px;margin:0 0 4px;}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.45;}
+  label{font-size:12px;color:var(--muted);display:block;margin:12px 0 6px;}
+  select,button{width:100%;padding:8px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;}
+  button{cursor:pointer;}
+  input[type=range]{width:100%;}
+  .val{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;}
+  #sliders{margin-top:6px;}
+  .orbrow{margin:8px 0;}
+  .readout{background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:12px;font-size:13px;margin-top:14px;}
+  .big{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;}
+  .badge{font-size:10px;font-weight:800;margin-left:6px;padding:2px 6px;border-radius:5px;vertical-align:middle;}
+  .badge.exact{background:rgba(55,214,122,.16);color:#37d67a;}
+  .bars{margin-top:10px;}
+  .bar{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12px;}
+  .swatch{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  .barfill{height:14px;border-radius:3px;min-width:2px;}
+  .barlabel{width:118px;flex:0 0 auto;color:var(--muted);}
+  .barcount{width:44px;text-align:right;font-variant-numeric:tabular-nums;}
+  .togglerow{display:flex;gap:8px;margin-top:10px;}
+  .togglerow button{flex:1;font-size:12px;padding:7px 4px;}
+  .togglerow button.active{background:#1f6feb;border-color:#1f6feb;color:#fff;font-weight:600;}
+  .note{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;}
+  #caption{position:absolute;left:0;right:0;bottom:0;padding:14px 20px;background:linear-gradient(transparent,rgba(6,8,12,.9));font-size:13px;color:var(--muted);pointer-events:none;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view"><div id="caption"></div></div>
+  <div id="panel">
+    <h1>Pieces per cut depth (sphere)</h1>
+    <p class="sub">For each cut depth, two <b>exact</b> counts are shown: <b>external</b> — pieces that reach the sphere's surface (a piece buried under others isn't counted) — and <b>total</b>, every movable piece.</p>
+
+    <label>Axis system</label>
+    <select id="system"></select>
+
+    <div id="sliders"></div>
+
+    <div id="regimeLabel" style="background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.5;"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="skipBack">◀ shallower config</button>
+      <button id="skipFwd">deeper config ▶</button>
+    </div>
+
+    <label>Cut line thickness (arc width): <span id="lwval" class="val">0.012</span></label>
+    <input type="range" id="lw" min="0.004" max="0.03" step="0.001" value="0.012"/>
+
+    <div class="togglerow">
+      <button id="mType" class="active">By type</button>
+      <button id="mFace">By face</button>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+    <div class="readout" style="flex:1;">
+      <div style="color:var(--muted);font-size:12px;">External (surface) pieces <span id="badge" class="badge exact">EXACT</span></div>
+      <div class="big" id="extTotal">0</div>
+      <div class="bars" id="extBars"></div>
+    </div>
+    <div class="readout" style="flex:1;">
+      <div style="color:var(--muted);font-size:12px;">Total pieces (all cells, incl. buried)</div>
+      <div class="big" id="allTotal">0</div>
+      <div class="bars" id="allBars"></div>
+    </div>
+    </div>
+    <div class="note" id="note"></div>
+    <label>Configurations (shallow to deep) — click a <b style="color:#4cc9f0">depth</b> to jump:</label>
+    <div id="jump" style="margin-top:6px;"></div>
+  </div>
+</div>
+
+<script src="systems_data.js"></script>
+<script src="surface_data.js"></script>
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+<script>
+const MAXR=64;
+const TYPE_COLORS={1:[255,107,107],2:[76,201,240],3:[255,209,102],4:[102,217,142],5:[176,139,240],6:[255,159,67]};
+function typeColor(w,maxw){const c=TYPE_COLORS[w];if(c)return c;const d=Math.max(1,(maxw||10)-7);const g=Math.round(184+(w-7)/d*58);return[Math.min(242,g),Math.min(242,g),Math.min(242,g)];}
+function typeName(w){return {1:"singly-gripped (w1)",2:"doubly-gripped (w2)",3:"triply-gripped (w3)"}[w]||("weight "+w);}
+
+const view=document.getElementById('view'), caption=document.getElementById('caption');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0b0e14);
+const cam=new THREE.PerspectiveCamera(45,view.clientWidth/view.clientHeight,0.01,100);
+cam.position.set(2.4,1.7,2.4);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(view.clientWidth,view.clientHeight); view.appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(cam,renderer.domElement); controls.enableDamping=true;
+
+const uniforms={
+  rays:{value:Array.from({length:MAXR},()=>new THREE.Vector3(0,0,0))},
+  rdepth:{value:new Float32Array(MAXR)},
+  nRays:{value:6}, lineW:{value:0.012}, mode:{value:0}, maxW:{value:10},
+};
+const vert=`varying vec3 vPos; void main(){ vPos=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const frag=`
+precision highp float;
+varying vec3 vPos;
+uniform vec3 rays[${MAXR}];
+uniform float rdepth[${MAXR}];
+uniform int nRays; uniform float lineW; uniform int mode; uniform int maxW;
+vec3 typeColor(int w){
+  if(w==0) return vec3(0.16,0.18,0.22);
+  if(w==1) return vec3(1.0,0.42,0.42);
+  if(w==2) return vec3(0.30,0.79,0.94);
+  if(w==3) return vec3(1.0,0.82,0.40);
+  if(w==4) return vec3(0.40,0.85,0.56);
+  if(w==5) return vec3(0.69,0.55,0.94);
+  if(w==6) return vec3(1.0,0.62,0.26);
+  float g=0.72+float(w-7)/max(1.0,float(maxW-7))*0.23; return vec3(min(0.95,g));
+}
+vec3 hsv2rgb(vec3 c){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(c.xxx+K.xyz)*6.-K.www);return c.z*mix(K.xxx,clamp(p-K.xxx,0.,1.),c.y);}
+void main(){
+  vec3 p=normalize(vPos);
+  int w=0; float mind=10.0; int best=0; float bestv=-2.0;
+  for(int i=0;i<${MAXR};i++){
+    if(i>=nRays) break;
+    float dp=dot(p,rays[i]);
+    mind=min(mind, abs(acos(clamp(dp,-1.0,1.0)) - acos(clamp(rdepth[i],-1.0,1.0))));
+    if(dp>bestv){bestv=dp;best=i;}
+    if(dp>rdepth[i]) w++;
+  }
+  vec3 base = (mode==0)? typeColor(w) : hsv2rgb(vec3(fract(float(best)*0.61803),0.70,0.95));
+  vec3 L=normalize(vec3(0.5,0.85,0.6));
+  base *= 0.55+0.45*max(0.0,dot(p,L));
+  float line=smoothstep(lineW,lineW*0.4,mind);
+  base=mix(base, vec3(0.02,0.02,0.03), line);
+  gl_FragColor=vec4(base,1.0);
+}`;
+const mat=new THREE.ShaderMaterial({uniforms,vertexShader:vert,fragmentShader:frag});
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(1,320,160),mat));
+
+const sysSel=document.getElementById('system');
+SURFACE_DATA.order.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n+" — "+SURFACE_DATA.systems[n].rays+" rays";sysSel.appendChild(o);});
+const DEF=SURFACE_DATA.order.find(n=>SURFACE_DATA.systems[n].rays===20)||SURFACE_DATA.order[0];
+sysSel.value=DEF;
+let mode='type', sliders=[], forcedDepth=null;
+let SD=SURFACE_DATA.systems[sysSel.value];       // current system's surface data
+const depOf=e=>(e.kind==='wall'?e.d:e.d_rep);
+let FEAT=[]; let curIdx=0;
+function rebuildFeat(){ FEAT=SD.entries.slice().sort((a,b)=>depOf(b)-depOf(a)); }  // shallow->deep
+
+// exact surface-config lookup by depth (current system)
+function surfaceLookup(d){
+  for(const e of SD.entries){ if(e.kind==='wall' && Math.abs(e.d-d)<5e-4) return e; }
+  for(const e of SD.entries){ if(e.kind==='interval' && d>=e.d_lo && d<e.d_hi) return e; }
+  let best=SD.entries[0],bd=9; for(const e of SD.entries){const dd=Math.abs(depOf(e)-d); if(dd<bd){bd=dd;best=e;}} return best;
+}
+function skip(dir){ let ni=Math.max(0,Math.min(FEAT.length-1,curIdx+dir)); forcedDepth=depOf(FEAT[ni]); update(); }
+rebuildFeat();
+
+function buildSliders(){
+  const cont=document.getElementById('sliders'); cont.innerHTML=''; sliders=[];
+  SYSTEMS[sysSel.value].forEach((orb,k)=>{
+    const row=document.createElement('div'); row.className='orbrow';
+    const lab=document.createElement('label');
+    lab.innerHTML=`Cut depth: <span class="val" id="dv${k}">0.300</span>`;
+    // slider position runs left->right; depth = 1 - position, so left = shallow (large d)
+    const inp=document.createElement('input'); inp.type='range'; inp.min='0.02'; inp.max='1.00'; inp.step='0.001'; inp.value='0.700';
+    inp.addEventListener('input',()=>{forcedDepth=null;document.getElementById('dv'+k).textContent=(1-parseFloat(inp.value)).toFixed(3);update();});
+    const ends=document.createElement('div'); ends.style.cssText='display:flex;justify-content:space-between;font-size:10px;color:#5b6472;margin-top:2px;';
+    ends.innerHTML='<span>shallow</span><span>deep</span>';
+    row.appendChild(lab); row.appendChild(inp); row.appendChild(ends); cont.appendChild(row); sliders.push(inp);
+  });
+}
+
+function update(){
+  const name=sysSel.value, orbs=SYSTEMS[name];
+  const depths=sliders.map(s=>1-parseFloat(s.value));
+  if(forcedDepth!=null){ depths[0]=forcedDepth; if(sliders[0]){sliders[0].value=1-forcedDepth; const dv=document.getElementById('dv0'); if(dv)dv.textContent=forcedDepth.toFixed(4);} }
+  const lw=parseFloat(document.getElementById('lw').value);
+  document.getElementById('lwval').textContent=lw.toFixed(3);
+  // flatten rays + per-ray depth
+  const flat=[], rd=[];
+  orbs.forEach((orb,k)=>orb.rays.forEach(v=>{flat.push(v);rd.push(depths[k]);}));
+  for(let i=0;i<MAXR;i++){
+    if(i<flat.length){uniforms.rays.value[i].set(flat[i][0],flat[i][1],flat[i][2]);uniforms.rdepth.value[i]=rd[i];}
+    else{uniforms.rays.value[i].set(0,0,0);uniforms.rdepth.value[i]=2.0;}
+  }
+  uniforms.nRays.value=flat.length; uniforms.lineW.value=lw; uniforms.mode.value=(mode==='type')?0:2;
+
+  // EXACT external (surface) + total (all-cell) counts from surface_data.js.
+  const e=surfaceLookup(depths[0]);
+  const maxw=SD.maxw||10; uniforms.maxW.value=maxw;
+  curIdx=FEAT.indexOf(e);
+  {const nm=e.rad?('Radiolarian '+e.rad+' — '+e.name):(e.name?e.name:(SD.is_radiolarian?'corner-turning dodecahedron only (no face-turning-icosahedron form)':(e.kind==='wall'?'wall config':'regime')));
+   document.getElementById('regimeLabel').innerHTML='<b style="color:#e6e9ef">'+nm+'</b><br><span style="color:#98a2b3">'+(e.kind==='wall'?'wall · width-0 config':'regime interval')+' · d='+depOf(e).toFixed(4)+' · external '+e.ext_total+' / total '+e.all_total+'</span>';}
+  document.querySelectorAll('#jump tr[data-idx]').forEach(tr=>{tr.style.background=(+tr.dataset.idx===curIdx)?'rgba(31,111,235,.28)':'';});
+  const badge=document.getElementById('badge'); badge.textContent='EXACT'; badge.className='badge exact';
+  function renderBars(id,totId,hist,tot){
+    document.getElementById(totId).textContent=tot;
+    let maxc=1; for(let w=1;w<=maxw;w++) maxc=Math.max(maxc,+hist[w]||0);
+    let html='';
+    for(let w=1;w<=maxw;w++){
+      const cnt=+hist[w]||0, c=typeColor(w,maxw), cs=`rgb(${c[0]},${c[1]},${c[2]})`;
+      const width=Math.round(140*cnt/maxc);
+      html+=`<div class="bar"><span class="swatch" style="background:${cs};opacity:${cnt?1:0.3}"></span><span class="barlabel">${typeName(w)}</span><span class="barfill" style="background:${cs};width:${width}px;opacity:${cnt?1:0.3}"></span><span class="barcount">${cnt}</span></div>`;
+    }
+    document.getElementById(id).innerHTML=html;
+  }
+  renderBars('extBars','extTotal',e.ext_hist,e.ext_total);
+  renderBars('allBars','allTotal',e.all_hist,e.all_total);
+  document.getElementById('note').innerHTML = (mode==='face')
+    ? `Faces = spherical Voronoi of all axes (depth-independent).`
+    : `Weight buckets 1–${maxw} are always shown, even when empty.`;
+  caption.innerHTML=`<b>${name}</b> — depth ${depths[0].toFixed(4)} — external ${e.ext_total} / total ${e.all_total}`;
+}
+
+sysSel.addEventListener('change',()=>{ SD=SURFACE_DATA.systems[sysSel.value]; rebuildFeat(); buildSliders(); buildJumpTable(); forcedDepth=depOf(FEAT[0]); update(); });
+document.getElementById('lw').addEventListener('input',update);
+function setMode(m){mode=m;['Type','Face'].forEach(x=>document.getElementById('m'+x).classList.toggle('active',mode===x.toLowerCase()));update();}
+document.getElementById('mType').addEventListener('click',()=>setMode('type'));
+document.getElementById('mFace').addEventListener('click',()=>setMode('face'));
+document.getElementById('skipFwd').addEventListener('click',()=>skip(+1));
+document.getElementById('skipBack').addEventListener('click',()=>skip(-1));
+
+function loop(){requestAnimationFrame(loop);controls.update();renderer.render(scene,cam);}
+loop();
+window.addEventListener('resize',()=>{cam.aspect=view.clientWidth/view.clientHeight;cam.updateProjectionMatrix();renderer.setSize(view.clientWidth,view.clientHeight);});
+function buildJumpTable(){
+  const c=document.getElementById('jump');
+  let h='<table style="width:100%;border-collapse:collapse;font-size:12px;">'
+   +'<tr style="color:#98a2b3;text-align:left;"><th style="padding:3px 6px;">#</th><th>depth</th><th>nickname</th><th>type</th><th style="text-align:right;">ext</th><th style="text-align:right;padding-right:6px;">total</th></tr>';
+  FEAT.forEach((e,i)=>{
+    const d=depOf(e);
+    const nm=e.rad?('R'+e.rad+' — '+e.name):(e.name?e.name:('<span style="color:#5b6472">'+(SD.is_radiolarian?'dodeca-corner only':'—')+'</span>'));
+    h+=`<tr data-idx="${i}" style="border-top:1px solid #222a37;">`
+     +`<td style="padding:3px 6px;color:#98a2b3;">${i+1}</td>`
+     +`<td><a href="#" data-d="${d}" style="color:#4cc9f0;text-decoration:none;font-variant-numeric:tabular-nums;">${d.toFixed(5)}</a></td>`
+     +`<td>${nm}</td>`
+     +`<td style="color:${e.kind==='wall'?'#ff9f43':'#98a2b3'};">${e.kind==='wall'?'wall':'regime'}</td>`
+     +`<td style="text-align:right;font-variant-numeric:tabular-nums;">${e.ext_total}</td>`
+     +`<td style="text-align:right;padding-right:6px;color:#98a2b3;font-variant-numeric:tabular-nums;">${e.all_total}</td></tr>`;
+  });
+  h+='</table>'; c.innerHTML=h;
+  c.querySelectorAll('a[data-d]').forEach(a=>a.addEventListener('click',ev=>{ev.preventDefault();forcedDepth=parseFloat(a.dataset.d);update();}));
+}
+buildSliders(); buildJumpTable(); forcedDepth=depOf(FEAT[0]); update();
+</script>
+</body>
+</html>
