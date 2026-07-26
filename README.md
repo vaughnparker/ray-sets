@@ -255,7 +255,16 @@ python turning_systems.py
 
 ### [`3_cut_depths/`](3_cut_depths) — where you cut
 
-Not written yet. This is where the count stops being finite.
+Notes on the cut-depth question — why the puzzle count turns infinite, and how the
+regimes are counted. The computation and visualization live in
+[`4_main_visualizations/`](4_main_visualizations).
+
+### [`4_main_visualizations/`](4_main_visualizations) — cut depths, computed and explored
+
+Enumerates each axis system's cut-depth **regimes** — how the pieces change as the
+cut depth varies — and shows them in an interactive 3D viewer. Elementary systems
+are exact; compound systems are grid lower bounds. See its
+[README](4_main_visualizations/README.md).
 
 Nothing is hard-coded. The groups are closed from two rotations each, the families
 are found as orbits, and the 21 → 16 collapse is **proved** rather than asserted:
