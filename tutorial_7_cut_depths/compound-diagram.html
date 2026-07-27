@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cut-regime maps (compound systems)</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;padding:28px 34px 60px;}
+  h1{font-size:20px;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 18px;line-height:1.5;max-width:900px;}
+  .toggle{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
+  .toggle button{padding:8px 14px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;cursor:pointer;}
+  .toggle button.active{background:#1f6feb;border-color:#1f6feb;color:#fff;font-weight:600;}
+  #panels{display:flex;flex-wrap:wrap;gap:34px;}
+  .panel{flex:0 0 auto;}
+  .ptitle{font-size:15px;font-weight:700;margin-bottom:2px;}
+  .pmeta{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .plot{display:flex;align-items:stretch;gap:6px;}
+  .ylab{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--muted);text-align:center;align-self:center;white-space:nowrap;}
+  .gridwrap{display:flex;flex-direction:column;gap:5px;}
+  .grid{display:grid;background:#0b0e14;gap:0;}
+  .cell{width:100%;height:100%;cursor:pointer;}
+  .cell:hover{outline:1.5px solid #fff;outline-offset:-1px;z-index:2;}
+  .xlab{font-size:11px;color:var(--muted);text-align:center;}
+  .arrow{color:#5a6472;}
+  #tip{position:fixed;pointer-events:none;background:#0b0e14;border:1px solid #2a3342;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;opacity:0;transition:opacity .1s;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.5);}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:5px;}
+</style>
+</head>
+<body>
+  <h1>Cut-regime maps — compound systems</h1>
+  <p class="sub">A <b>compound</b> axis system combines two elementary orbits, and each
+  orbit carries its <b>own</b> cut depth — so the puzzle landscape is a 2-D square, not a
+  strip. Each square below is one system: the <b>x-axis</b> is the first orbit's depth, the
+  <b>y-axis</b> the second, both running <b>shallow → deep</b> (so the most complex puzzles
+  sit at the top-right). Each cell is shaded by its <b>total piece count</b> — a smooth
+  complexity landscape — and <b>thick walls</b> separate neighbouring cells that belong to
+  different <b>regimes</b>, so a block of one shade with no internal walls is a single
+  regime. Hover any cell for the two depths and the piece breakdown.</p>
+  <p class="sub" style="margin-bottom:22px;"><b>Two honest caveats.</b> (1) This is a
+  <b>grid sample</b> (N=20 per axis), so the regime count is a <i>lower bound</i> — regimes
+  thinner than a grid line can be missed, and the degenerate depth-0 edges aren't sampled.
+  (2) Unlike the elementary strips, these counts are by <b>total pieces</b>, not surface —
+  matching the surface lens here is future work (it needs the flood-fill added to
+  <code>precompute_compound.py</code> and a re-run).</p>
+  <div class="toggle">
+    <button id="mTotal" class="active">Colour by total count</button>
+    <button id="mType">Colour by piece type (max weight)</button>
+  </div>
+  <div id="panels"></div>
+  <div id="tip"></div>
+
+<script src="compound_data.js"></script>
+<script>
+const TYPE_COLORS={1:[255,107,107],2:[76,201,240],3:[255,209,102],4:[102,217,142],5:[176,139,240],6:[255,159,67]};
+function tc(w){const c=TYPE_COLORS[w];if(c)return c;const g=Math.min(220,110+14*(w-6));return[g,g,g];}
+function csc(w){const c=tc(w);return `rgb(${c[0]},${c[1]},${c[2]})`;}
+function tname(w){return {1:"singly-gripped (w1)",2:"doubly (w2)",3:"triply (w3)"}[w]||("weight "+w);}
+const STOPS=[[13,20,40],[36,70,130],[41,182,246],[52,199,142],[255,209,102],[255,120,60]];
+function heat(t){t=Math.max(0,Math.min(1,t));const x=t*(STOPS.length-1),i=Math.floor(x),f=x-i;
+  const a=STOPS[i],b=STOPS[Math.min(i+1,STOPS.length-1)];
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;}
+const bkList=h=>Object.keys(h).map(Number).sort((a,b)=>a-b)
+  .map(w=>`<span class="sw" style="background:${csc(w)}"></span>${tname(w)}: <b>${h[w]}</b>`).join('<br>');
+
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;mv(e);}
+function mv(e){tip.style.left=(e.clientX+16)+'px';tip.style.top=(e.clientY+14)+'px';}
+function hide(){tip.style.opacity=0;}
+
+let mode='total';
+const CELL=15;   // px per grid cell
+
+function colorFor(S,id){
+  const r=S.regimes[id];
+  if(mode==='type') return csc(r.maxw);
+  const ts=S.regimes.map(x=>x.total), tmin=Math.min(...ts), tmax=Math.max(...ts);
+  return heat(tmax>tmin?(r.total-tmin)/(tmax-tmin):0.5);
+}
+
+function render(){
+  const cont=document.getElementById('panels'); cont.innerHTML='';
+  Object.keys(COMPOUND).forEach(name=>{
+    const S=COMPOUND[name];
+    if(S.rays.length!==2) return;                    // 2-orbit systems only
+    const N=S.N;
+    const panel=document.createElement('div'); panel.className='panel';
+    panel.innerHTML=`<div class="ptitle">${name}</div>`
+      +`<div class="pmeta">${S.rays[0]}+${S.rays[1]} rays · ${S.count} regimes `
+      +`<span class="arrow">(grid lower bound, N=${N})</span></div>`;
+
+    const plot=document.createElement('div'); plot.className='plot';
+    const ylab=document.createElement('div'); ylab.className='ylab';
+    ylab.innerHTML=`${S.labels[1]} depth &nbsp;<span class="arrow">shallow → deep</span>`;
+    const gw=document.createElement('div'); gw.className='gridwrap';
+    const grid=document.createElement('div'); grid.className='grid';
+    grid.style.gridTemplateColumns=`repeat(${N},${CELL}px)`;
+    grid.style.gridTemplateRows=`repeat(${N},${CELL}px)`;
+
+    // display grid: row r (top->bottom) = orbit-B depth index r (deep 0 -> shallow N-1);
+    // col c (left->right) = orbit-A depth index N-1-c (shallow N-1 -> deep 0)
+    const idd=[];
+    for(let r=0;r<N;r++){const row=[];for(let c=0;c<N;c++)row.push(S.grid[N-1-c][r]);idd.push(row);}
+    const W='#0b0e14';                                 // wall colour
+    for(let r=0;r<N;r++){
+      const iB=r;
+      for(let c=0;c<N;c++){
+        const iA=N-1-c, id=idd[r][c], col=colorFor(S,id);
+        const cell=document.createElement('div'); cell.className='cell';
+        cell.style.background=col;
+        // 1px border on all four sides: wall colour where the neighbour is a different
+        // regime (or the grid edge), else the cell's own colour (invisible). Bordering
+        // every side means each boundary gets 1px from both cells and each cell fills
+        // its own corners, so wall junctions stay solid.
+        cell.style.borderTop   ='1px solid '+((r===0   || idd[r-1][c]!==id)?W:col);
+        cell.style.borderBottom='1px solid '+((r===N-1 || idd[r+1][c]!==id)?W:col);
+        cell.style.borderLeft  ='1px solid '+((c===0   || idd[r][c-1]!==id)?W:col);
+        cell.style.borderRight ='1px solid '+((c===N-1 || idd[r][c+1]!==id)?W:col);
+        const rg=S.regimes[id];
+        const html=`<b>regime #${id}</b><br>`
+          +`<span style="color:#98a2b3">${S.labels[0]}</span> depth <b>${S.depths[iA]}</b><br>`
+          +`<span style="color:#98a2b3">${S.labels[1]}</span> depth <b>${S.depths[iB]}</b><br>`
+          +`<b>${rg.total} pieces</b><br>${bkList(rg.hist)}`;
+        cell.addEventListener('mousemove',ev=>showTip(ev,html));
+        cell.addEventListener('mouseleave',hide);
+        grid.appendChild(cell);
+      }
+    }
+    const xlab=document.createElement('div'); xlab.className='xlab';
+    xlab.innerHTML=`${S.labels[0]} depth &nbsp;<span class="arrow">shallow → deep</span>`;
+    gw.appendChild(grid); gw.appendChild(xlab);
+    plot.appendChild(ylab); plot.appendChild(gw);
+    panel.appendChild(plot);
+    cont.appendChild(panel);
+  });
+}
+function setBtn(){
+  mTotal.classList.toggle('active',mode==='total');
+  mType.classList.toggle('active',mode==='type');
+}
+mTotal.addEventListener('click',()=>{mode='total';setBtn();render();});
+mType.addEventListener('click',()=>{mode='type';setBtn();render();});
+setBtn(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Ray-sets are polyhedra</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  #app{display:flex;height:100vh;overflow:hidden;}
+  #view{flex:1;position:relative;}
+  #panel{width:340px;background:var(--panel);padding:18px;overflow-y:auto;border-left:1px solid #222a37;}
+  h1{font-size:16px;margin:0 0 6px;}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.5;}
+  label{font-size:12px;color:var(--muted);display:block;margin:14px 0 6px;}
+  select{width:100%;padding:8px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;}
+  .modes{display:flex;gap:8px;margin-top:6px;}
+  .modes button{flex:1;padding:8px 6px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:12px;cursor:pointer;}
+  .modes button.active{background:#1f6feb;border-color:#1f6feb;color:#fff;font-weight:600;}
+  .check{display:flex;align-items:center;gap:7px;margin-top:12px;cursor:pointer;font-size:12px;color:var(--muted);}
+  .check input{width:auto;}
+  .readout{background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:12px;font-size:13px;margin-top:16px;line-height:1.6;}
+  .big{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:6px;}
+  .fvE{font-size:12px;color:var(--muted);margin-bottom:8px;}
+  .fam{display:flex;align-items:center;gap:8px;margin:3px 0;}
+  .swatch{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  #caption{position:absolute;left:0;right:0;bottom:0;padding:14px 20px;background:linear-gradient(transparent,rgba(6,8,12,.9));font-size:13px;color:var(--muted);pointer-events:none;}
+  .hint{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;}
+  .why{background:#0f141d;border:1px solid #2a3342;border-left:3px solid #e8833a;border-radius:8px;padding:11px 12px;font-size:12px;color:var(--ink);line-height:1.55;margin-top:4px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view"><div id="caption"></div></div>
+  <div id="panel">
+    <h1>Ray-sets are polyhedra</h1>
+    <p class="sub">Give every ray a face tangent to the sphere — keep only what lies inside
+    all of them, <code>{ x : r·x ≤ 1 }</code> — and each ray-set becomes a solid. One face
+    per ray, so turning a face <i>is</i> turning about a ray. <b>O·6</b> is a cube,
+    <b>O·8</b> an octahedron, <b>I·12</b> a dodecahedron (the Megaminx).</p>
+
+    <div class="why"><b>The shell is cosmetic.</b> What defines the puzzle is the ray-set,
+    not the outer shape. A tetrahedron-shaped 3×3×3 (the <b>Mastermorphix</b>) has the
+    <i>same rays</i> as a Rubik's Cube — same axis system, different shell. These solids
+    are just the most natural body for each ray-set.</p>
+
+    <label>Ray-set</label>
+    <select id="system"></select>
+
+    <label>Show as</label>
+    <div class="modes">
+      <button id="mFace" class="active">Face-turning</button>
+      <button id="mDual">Vertex-turning (dual)</button>
+    </div>
+
+    <label class="check"><input type="checkbox" id="rotate" checked> slowly rotate</label>
+
+    <div class="readout">
+      <div class="big" id="big">0 faces</div>
+      <div class="fvE" id="fve"></div>
+      <div id="families"></div>
+    </div>
+
+    <p class="hint">Faces are coloured by <b>family</b> — rays the symmetry shuffles among
+    themselves. The <b>dual</b> swaps faces and vertices: a face-turning cube and a
+    vertex-turning octahedron are the same ray-set (<b>O·6</b>), so its turning axes now
+    sit at the coloured <b>corners</b>. Drag to orbit, scroll to zoom.</p>
+  </div>
+</div>
+
+<script src="systems_data.js"></script>
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+<script>
+const PALETTE = [0x3b7dd8, 0xe8833a, 0x2ca58d];   // one colour per family
+const css = h => "#" + h.toString(16).padStart(6, "0");
+const TOL = 1e-5;
+
+// ---- tiny vector helpers (plain arrays) ----
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const nrm=a=>Math.hypot(a[0],a[1],a[2]);
+const unit=a=>{const n=nrm(a)||1;return [a[0]/n,a[1]/n,a[2]/n];};
+const mean=P=>{const s=[0,0,0];P.forEach(p=>{s[0]+=p[0];s[1]+=p[1];s[2]+=p[2];});return s.map(x=>x/P.length);};
+
+function det3(m){
+  return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+       - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+       + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+}
+function solve3(rows,b){                          // rows·x = b, 3×3
+  const D=det3(rows); if(Math.abs(D)<1e-9) return null;
+  const col=j=>rows.map((row,i)=>{const r=row.slice(); r[j]=b[i]; return r;});
+  return [det3(col(0))/D, det3(col(1))/D, det3(col(2))/D];
+}
+
+// vertices of P = { x : r·x ≤ 1 }: feasible intersections of ray-plane triples
+function corners(R){
+  const out=[], n=R.length;
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++)for(let k=j+1;k<n;k++){
+    const p=solve3([R[i],R[j],R[k]],[1,1,1]); if(!p) continue;
+    let feasible=true;
+    for(const r of R){ if(dot(r,p) > 1+TOL){ feasible=false; break; } }
+    if(!feasible) continue;
+    if(!out.some(q=>nrm(sub(q,p))<TOL)) out.push(p);
+  }
+  return out;
+}
+
+// order points of one face into a ring, wound around the face axis
+function wind(axis, pts){
+  let u=cross(axis,[1,0,0]); if(nrm(u)<0.1) u=cross(axis,[0,1,0]); u=unit(u);
+  const w=cross(axis,u), c=mean(pts);
+  return pts.map(p=>{const d=sub(p,c); return {p, a:Math.atan2(dot(d,w), dot(d,u))};})
+           .sort((x,y)=>x.a-y.a).map(o=>o.p);
+}
+
+function geometryFor(name){
+  const R=[], fam=[];
+  SYSTEMS[name].forEach((o,f)=>o.rays.forEach(v=>{ R.push([v[0],v[1],v[2]]); fam.push(f); }));
+  const V=corners(R);
+  const faceT=R.map((r,i)=>({poly: wind(r, V.filter(v=>Math.abs(dot(r,v)-1)<TOL)), fam:fam[i]}));
+  const dualF=V.map(v=>({poly: wind(v, R.filter(r=>Math.abs(dot(r,v)-1)<TOL))}));
+  const edges=faceT.reduce((s,f)=>s+f.poly.length,0)/2;
+  return {R, fam, V, faceT, dualF, edges};
+}
+
+// ---- three.js scene ----
+const view=document.getElementById('view'), caption=document.getElementById('caption');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0b0e14);
+const cam=new THREE.PerspectiveCamera(45, view.clientWidth/view.clientHeight, 0.01, 100);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(view.clientWidth, view.clientHeight); view.appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(cam, renderer.domElement); controls.enableDamping=true;
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const key=new THREE.DirectionalLight(0xffffff, 0.85); key.position.set(0.5,0.85,0.6); scene.add(key);
+const fill=new THREE.DirectionalLight(0xffffff, 0.25); fill.position.set(-0.6,-0.3,-0.5); scene.add(fill);
+const solid=new THREE.Group(); scene.add(solid);
+
+function clear(g){ while(g.children.length){ const c=g.children.pop();
+  if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose();
+  if(c.children) clear(c); } }
+
+function faceGeom(poly){
+  const g=new THREE.BufferGeometry(), pos=[];
+  for(let i=1;i<poly.length-1;i++) pos.push(...poly[0], ...poly[i], ...poly[i+1]);
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  g.computeVertexNormals(); return g;
+}
+function edgeLoop(poly, colorHex){
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(poly.flat(),3));
+  return new THREE.LineLoop(g, new THREE.LineBasicMaterial({color:colorHex}));
+}
+
+let currentName, mode='face';
+
+function build(G){
+  const grp=new THREE.Group();
+  if(mode==='face'){
+    G.faceT.forEach(fc=>{
+      grp.add(new THREE.Mesh(faceGeom(fc.poly), new THREE.MeshStandardMaterial(
+        {color:PALETTE[fc.fam%PALETTE.length], roughness:0.6, metalness:0.0,
+         side:THREE.DoubleSide, flatShading:true})));
+      grp.add(edgeLoop(fc.poly, 0xffffff));
+    });
+  } else {
+    G.dualF.forEach(fc=>{
+      grp.add(new THREE.Mesh(faceGeom(fc.poly), new THREE.MeshStandardMaterial(
+        {color:0xd7dbe0, roughness:0.7, metalness:0.0, side:THREE.DoubleSide,
+         transparent:true, opacity:0.82, flatShading:true})));
+      grp.add(edgeLoop(fc.poly, 0x9aa0a6));
+    });
+    G.R.forEach((r,i)=>{                              // rays become coloured vertices (the axes)
+      const s=new THREE.Mesh(new THREE.SphereGeometry(0.05,14,14),
+        new THREE.MeshStandardMaterial({color:PALETTE[G.fam[i]%PALETTE.length], roughness:0.5}));
+      s.position.set(r[0],r[1],r[2]); grp.add(s);
+    });
+  }
+  return grp;
+}
+
+function frame(maxR){
+  const dist=Math.max(2.3, maxR/Math.tan(Math.PI/8)*1.12);
+  cam.position.copy(new THREE.Vector3(1.1,0.8,1.1).normalize().multiplyScalar(dist));
+  cam.lookAt(0,0,0); controls.target.set(0,0,0); controls.update();
+}
+
+const cache={};
+function render(){
+  clear(solid);
+  const G=cache[currentName] || (cache[currentName]=geometryFor(currentName));
+  solid.add(build(G));
+  const pts = mode==='face' ? G.V : G.R;
+  let maxR=0; pts.forEach(p=>maxR=Math.max(maxR, nrm(p)));
+  frame(maxR);
+  updateReadout(G);
+}
+
+function updateReadout(G){
+  const F=G.R.length, Vn=G.V.length, E=G.edges;
+  const faces = mode==='face' ? F : Vn, verts = mode==='face' ? Vn : F;
+  document.getElementById('big').textContent = `${faces} faces`;
+  document.getElementById('fve').innerHTML =
+    `${faces} faces · ${verts} vertices · ${E} edges`;
+  const orbits=SYSTEMS[currentName];
+  document.getElementById('families').innerHTML = orbits.map((o,f)=>
+    `<div class="fam"><span class="swatch" style="background:${css(PALETTE[f%PALETTE.length])}"></span>${o.label}</div>`).join('');
+  caption.innerHTML = `<b>${currentName}</b> — ${mode==='face'?'face-turning':'vertex-turning (dual)'}, `
+    + `${faces} faces / ${verts} vertices`;
+}
+
+// ---- controls ----
+const sel=document.getElementById('system');
+const GROUP={Tetrahedron:"Tetrahedral (T)", Cube:"Octahedral (O)", Dodecahedron:"Icosahedral (I)", Dodeca:"Icosahedral (I)"};
+const groups={};
+Object.keys(SYSTEMS).forEach(n=>{ (groups[GROUP[n.split(' ')[0]]] ||= []).push(n); });
+["Tetrahedral (T)","Octahedral (O)","Icosahedral (I)"].forEach(g=>{
+  if(!groups[g]) return;
+  const og=document.createElement('optgroup'); og.label=g;
+  groups[g].forEach(n=>{ const nr=SYSTEMS[n].reduce((a,o)=>a+o.rays.length,0);
+    const o=document.createElement('option'); o.value=n; o.textContent=`${n} — ${nr} rays`; og.appendChild(o); });
+  sel.appendChild(og);
+});
+function loadRayset(name){ currentName=name; solid.rotation.y=0; render(); }
+sel.addEventListener('change', ()=>loadRayset(sel.value));
+
+const bFace=document.getElementById('mFace'), bDual=document.getElementById('mDual');
+function setMode(m){ mode=m; bFace.classList.toggle('active',m==='face'); bDual.classList.toggle('active',m==='dual'); render(); }
+bFace.addEventListener('click', ()=>setMode('face'));
+bDual.addEventListener('click', ()=>setMode('dual'));
+
+let rotating=true;
+document.getElementById('rotate').addEventListener('change', e=>rotating=e.target.checked);
+
+// ---- animation ----
+const clock=new THREE.Clock();
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=clock.getDelta();
+  if(rotating) solid.rotation.y += 0.3*dt;
+  controls.update(); renderer.render(scene, cam);
+}
+loop();
+sel.value="Cube - faces (Rubik's Cube)";
+loadRayset(sel.value);
+window.addEventListener('resize', ()=>{ cam.aspect=view.clientWidth/view.clientHeight;
+  cam.updateProjectionMatrix(); renderer.setSize(view.clientWidth, view.clientHeight); });
+</script>
+</body>
+</html>

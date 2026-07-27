@@ -14,7 +14,7 @@ python turning_systems.py
 
 ## The result
 
-Eleven of the sixteen ray-sets admit exactly one turning system. All the freedom
+Twelve of the sixteen ray-sets admit exactly one turning system. All the freedom
 lives in the four ray-sets built on **O's 6-family** — the cube's face axes:
 
 | ray-set | turning systems | $\lvert G\rvert$ | turn orders |
@@ -28,7 +28,7 @@ lives in the four ray-sets built on **O's 6-family** — the cube's face axes:
 | | | 24 | 6-family at 4, 12-family at 2 |
 | `O · 6+8+12` | **2** | 24 | 6-family at 2, rest forced |
 | | | 24 | 6-family at 4, rest forced |
-| the other 11 | **1** each | — | fully forced |
+| the other 12 | **1** each | — | fully forced |
 
 $12 \times 1 + 3 + 2 + 2 + 2 = 21$.
 

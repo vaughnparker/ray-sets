@@ -1,9 +1,9 @@
-numpy
-matplotlib
-
-# Only needed for the interactive notebook (rayview.ipynb):
-ipywidgets
-ipympl
+numpy                # core: the lib/ backend (raysets, turning_systems)
 
 # Only needed to regenerate the cut-regime data in tutorial_7_cut_depths/:
 scipy
+
+# Only for the retired matplotlib viewers / notebooks in old/:
+matplotlib
+ipywidgets
+ipympl

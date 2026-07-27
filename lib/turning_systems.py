@@ -25,8 +25,7 @@ from itertools import combinations, product
 
 import numpy as np
 
-_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_ROOT, "1_ray_sets"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import raysets                                                   # noqa: E402
 
 TOL = 1e-6

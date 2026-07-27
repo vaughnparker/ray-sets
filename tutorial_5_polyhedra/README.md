@@ -1,0 +1,40 @@
+# Ray-sets are polyhedra (tutorial stop #5)
+
+An interactive three.js view of the 16 ray-sets as solids. Give every ray a face
+tangent to the unit sphere and keep what lies inside all of them —
+`P = { x : r·x ≤ 1 }` — and each ray-set becomes a convex polyhedron with one face
+per ray. Turning a face *is* turning about a ray, so `P` is the natural puzzle body:
+`O·6` a cube, `O·8` an octahedron, `I·12` a dodecahedron (the Megaminx).
+
+This is the interactive port of the matplotlib montages in
+[`1_ray_sets/polyhedra/`](../1_ray_sets/polyhedra).
+
+## Run it
+Open **`ray-set-polyhedra.html`** in a browser. Fully self-contained — three.js r128
+and OrbitControls are vendored here, so it runs offline.
+
+- **Ray-set** dropdown — the 16, grouped by symmetry (T / O / I).
+- **Face-turning ↔ vertex-turning (dual)** — the dual swaps faces and vertices, so a
+  face-turning cube and a vertex-turning octahedron are the same ray-set (`O·6`); its
+  turning axes then sit at the coloured corners.
+- Drag to orbit, scroll to zoom, and an optional slow auto-rotate.
+
+## How the shape is built
+All geometry is computed in the browser (no precomputed mesh):
+- **vertices** — solve every triple of ray-planes `r·x = 1` and keep the solutions that
+  satisfy `r·x ≤ 1` for *all* rays (the feasible corners of `P`);
+- **faces** — for each ray, the vertices lying on its plane, wound into a ring;
+- **dual** — the same vertices become faces and the rays become vertices.
+
+Faces are coloured by **family** (the orbits the symmetry group shuffles among
+themselves). The face/vertex/edge counts satisfy Euler's `F − E + V = 2`.
+
+## Files
+| file | role |
+|---|---|
+| `ray-set-polyhedra.html` | the visualization (all geometry is in here) |
+| `systems_data.js` | ray coordinates for the 16 ray-sets (`const SYSTEMS`) — copied from `tutorial_7_cut_depths/`, generated there by `gen_systems.py` |
+| `three.min.js` + `OrbitControls.js` | three.js r128, vendored locally (offline) |
+
+The Python original (`old/polyhedra.py`, retired) used the same construction and wrote
+the static montage PNGs (still in `1_ray_sets/polyhedra/`).

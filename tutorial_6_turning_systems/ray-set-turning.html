@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Turning systems — how far each axis turns</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  #app{display:flex;height:100vh;overflow:hidden;}
+  #view{flex:1;position:relative;}
+  #panel{width:344px;background:var(--panel);padding:18px;overflow-y:auto;border-left:1px solid #222a37;}
+  h1{font-size:16px;margin:0 0 6px;}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.5;}
+  label{font-size:12px;color:var(--muted);display:block;margin:14px 0 6px;}
+  select{width:100%;padding:8px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;}
+  .sysbtns{display:flex;flex-direction:column;gap:6px;}
+  .sysbtns button{text-align:left;padding:8px 10px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:12px;cursor:pointer;line-height:1.4;}
+  .sysbtns button.active{background:#1f6feb;border-color:#1f6feb;color:#fff;}
+  .sysbtns .gtag{color:var(--muted);font-variant-numeric:tabular-nums;}
+  .sysbtns button.active .gtag{color:#cfe0ff;}
+  .readout{background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:12px;font-size:13px;margin-top:14px;line-height:1.6;}
+  .row{display:flex;align-items:center;gap:8px;margin:3px 0;}
+  .swatch{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  .pill{display:inline-block;min-width:18px;text-align:center;padding:1px 6px;border-radius:6px;font-weight:700;font-size:11px;color:#0b0e14;}
+  .legend{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7;}
+  #caption{position:absolute;left:0;right:0;bottom:0;padding:14px 20px;background:linear-gradient(transparent,rgba(6,8,12,.9));font-size:13px;color:var(--muted);pointer-events:none;}
+  #align{position:absolute;left:0;right:0;top:20px;text-align:center;font-size:14px;font-weight:700;color:#37d67a;opacity:0;transition:opacity .12s;pointer-events:none;}
+  .hint{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;}
+  .why{background:#0f141d;border:1px solid #2a3342;border-left:3px solid #37d67a;border-radius:8px;padding:11px 12px;font-size:12px;color:var(--ink);line-height:1.55;margin-top:4px;}
+  details.more{margin-top:16px;font-size:12px;color:var(--muted);}
+  details.more summary{cursor:pointer;color:#8ab4ff;font-weight:600;margin-bottom:4px;}
+  details.more p{line-height:1.55;margin:8px 0;}
+  details.more table{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px;}
+  details.more td,details.more th{border:1px solid #2a3342;padding:4px 7px;text-align:left;}
+  details.more th{color:var(--ink);}
+  details.more a{color:#8ab4ff;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view"><div id="align">↻ lands on itself</div><div id="caption"></div></div>
+  <div id="panel">
+    <h1>Turning systems</h1>
+    <p class="sub">A ray-set says <i>which</i> directions you can turn. A <b>turning system</b>
+    adds <i>how far</i>: each ray gets a <b>turn order</b> — 4 = quarter turns, 3 = thirds,
+    2 = half turns only. The little polygon on each ray shows its order (a square = 4-fold,
+    triangle = 3-fold, bar = half-turn).</p>
+
+    <div class="why"><b>Same rays, different puzzle.</b> The cube's six face-axes carry
+    <b>three</b> turning systems: all-4 is the <b>3×3×3</b>, two pairs dialed to half-turns
+    is the <b>Domino</b>, all-2 is a tetrahedral edge-turning cube. Only a 4-fold axis can
+    be dialed down, and those live only on the cube faces — which is why just 4 of the 16
+    ray-sets have any freedom, giving <b>21</b> turning systems in all.</p>
+
+    <label>Ray-set</label>
+    <select id="system"></select>
+
+    <label>Turning system</label>
+    <div class="sysbtns" id="sysbtns"></div>
+
+    <div class="readout">
+      <div id="orders"></div>
+      <div id="ginfo" style="margin-top:8px;color:var(--muted);"></div>
+    </div>
+
+    <p class="hint">Click any ray to turn the bundle by <b>its</b> allowed step and watch it
+    land back on itself. Drag to orbit.</p>
+
+    <div class="legend">
+      <div><b>Turn order</b> (the polygon):
+        <span id="orderlegend"></span></div>
+      <div style="margin-top:6px;"><b>Family</b> (the arrow colour):
+        <span id="famlegend"></span></div>
+    </div>
+
+    <details class="more">
+      <summary>Learn more</summary>
+      <p><b>The two rules.</b> Not every assignment of turn orders is legal.
+      <b>Closure:</b> turning a ray by its step must land the whole ray-set back on
+      itself. <b>Constant on families:</b> rays the generated group shuffles together
+      must share a turn order. The Domino is legal because restricting <i>two</i>
+      opposite face-pairs to half-turns is consistent; restricting only <i>one</i> is
+      not — a 90° turn about one axis would carry it onto a half-turn axis.</p>
+      <p><b>Turn order isn't what your moves generate.</b> Both turning systems on
+      <i>Cube&nbsp;faces&nbsp;+&nbsp;edges</i> generate a group of order 24, yet they
+      differ: in one, the face axes may only be <i>half</i>-turned, even though 90°
+      rotations exist inside the generated group. What you're <i>permitted</i> to turn
+      is not the same as what your moves reach.</p>
+      <p><b>Still not the whole puzzle.</b> A Skewb and a Dino Cube are the same ray-set
+      <i>and</i> the same turning system — yet different puzzles, because their cuts sit
+      at different depths. That's the next refinement (stop&nbsp;#7).</p>
+      <table>
+        <tr><th>object</th><th>records</th><th>count</th></tr>
+        <tr><td>ray-set</td><td>directions</td><td><b>16</b></td></tr>
+        <tr><td>turning system</td><td>+ how far</td><td><b>21</b></td></tr>
+        <tr><td>puzzle</td><td>+ where you cut</td><td><b>∞</b></td></tr>
+      </table>
+      <p>Full write-ups: <a href="what_is_a_turning_system.md">what_is_a_turning_system.md</a>
+      · <a href="turning_systems.md">turning_systems.md</a></p>
+    </details>
+  </div>
+</div>
+
+<script src="turning_data.js"></script>
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+<script>
+const FAMCOL = [0x3b7dd8, 0xe8833a, 0x2ca58d];            // one colour per family (matches other stops)
+const ORDERCOL = {2:0xff5d5d, 3:0xffd23f, 4:0x4dd0e1, 5:0xc77dff};   // one colour per turn order
+const ORDERNAME = {2:"half-turn (2)", 3:"third (3)", 4:"quarter (4)", 5:"fifth (5)"};
+const css = h => "#" + h.toString(16).padStart(6, "0");
+const RAYLEN = 1.3, ROSR = 0.15;
+
+const view=document.getElementById('view'), caption=document.getElementById('caption'), alignEl=document.getElementById('align');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0b0e14);
+const cam=new THREE.PerspectiveCamera(45, view.clientWidth/view.clientHeight, 0.01, 100); cam.position.set(3.0,2.2,3.0);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(view.clientWidth, view.clientHeight); view.appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(cam, renderer.domElement); controls.enableDamping=true;
+scene.add(new THREE.AmbientLight(0xffffff,0.6));
+const key=new THREE.DirectionalLight(0xffffff,0.8); key.position.set(0.5,0.85,0.6); scene.add(key);
+scene.add(new THREE.Mesh(new THREE.SphereGeometry(1,96,48),
+  new THREE.MeshStandardMaterial({color:0x232a36, roughness:1.0, transparent:true, opacity:0.5})));
+const ghosts=new THREE.Group(); scene.add(ghosts);
+const rays=new THREE.Group(); scene.add(rays);
+const ghostMat=new THREE.MeshBasicMaterial({color:0x8a93a6, transparent:true, opacity:0.3});
+
+function clear(g){ while(g.children.length){ const c=g.children.pop(); if(c.geometry) c.geometry.dispose(); } }
+
+// a small n-gon centred on the ray tip, in the plane perpendicular to the ray
+function rosette(v, n, colorHex){
+  let u=new THREE.Vector3().crossVectors(v, new THREE.Vector3(1,0,0));
+  if(u.length()<0.1) u.crossVectors(v, new THREE.Vector3(0,1,0));
+  u.normalize();
+  const w=new THREE.Vector3().crossVectors(v,u).normalize();
+  const tip=v.clone().multiplyScalar(RAYLEN), sides=Math.max(2,n), pts=[];
+  const off = sides%2 ? Math.PI/2 : Math.PI/sides;        // point-up look
+  for(let k=0;k<sides;k++){ const a=2*Math.PI*k/sides+off;
+    pts.push(tip.clone().addScaledVector(u, ROSR*Math.cos(a)).addScaledVector(w, ROSR*Math.sin(a))); }
+  return new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({color:colorHex}));
+}
+
+let currentName, cur=0, ALL=[], spinAxis=new THREE.Vector3(0,0,1), spinN=4;
+let angle=0, animating='none', tweenStart=0, tweenTo=0;
+const TWEEN_MS=1300; const clock=new THREE.Clock();
+
+function build(){
+  clear(ghosts); clear(rays);
+  ALL.forEach(({v,f,n})=>{
+    const tip=v.clone().multiplyScalar(RAYLEN);
+    const g=new THREE.Mesh(new THREE.SphereGeometry(0.03,10,10), ghostMat); g.position.copy(tip); ghosts.add(g);
+    rays.add(new THREE.ArrowHelper(v, new THREE.Vector3(0,0,0), RAYLEN, FAMCOL[f%FAMCOL.length], 0.14, 0.07));
+    rays.add(rosette(v, n, ORDERCOL[n] || 0xffffff));
+  });
+  rays.setRotationFromAxisAngle(spinAxis, angle);
+}
+
+function loadSystem(name){
+  currentName=name; cur=0; renderSystem();
+}
+function renderSystem(){
+  const S=TURNING[currentName], sys=S.systems[cur];
+  ALL=S.rays.map((r,i)=>({v:new THREE.Vector3(r[0],r[1],r[2]).normalize(), f:S.fam[i], n:sys.nu[i]}));
+  angle=0; animating='none'; build();
+
+  // system buttons
+  document.getElementById('sysbtns').innerHTML = S.systems.map((sy,k)=>{
+    const desc = sy.orders.map(o=>`${o.label}→${o.vals.join('/')}`).join(', ');
+    const title = sy.name ? sy.name : desc;
+    const sub = sy.name ? desc : '';
+    return `<button data-k="${k}" class="${k===cur?'active':''}"><b>${title}</b>`
+      + `<span class="gtag"> · |G|=${sy.G}</span>${sub?`<br><span class="gtag">${sub}</span>`:''}</button>`;
+  }).join('');
+  document.querySelectorAll('#sysbtns button').forEach(b=>
+    b.addEventListener('click',()=>{ cur=parseInt(b.dataset.k); renderSystem(); }));
+
+  // readout: turn order per family
+  document.getElementById('orders').innerHTML = sys.orders.map(o=>{
+    const pills=o.vals.map(x=>`<span class="pill" style="background:${css(ORDERCOL[x]||0xffffff)}">${x}</span>`).join(' ');
+    return `<div class="row"><span style="min-width:96px">${o.label}-family</span>${pills}</div>`;
+  }).join('');
+  document.getElementById('ginfo').innerHTML =
+    `generated group |G| = <b style="color:#e6e9ef">${sys.G}</b>${sys.name?` — <b style="color:#e6e9ef">${sys.name}</b>`:''}`;
+
+  // legends
+  const orders=[...new Set(S.systems.flatMap(s=>s.nu))].sort();
+  document.getElementById('orderlegend').innerHTML = orders.map(n=>
+    `<span class="row" style="display:inline-flex;margin-right:10px"><span class="swatch" style="background:${css(ORDERCOL[n])}"></span>${ORDERNAME[n]}</span>`).join('');
+  document.getElementById('famlegend').innerHTML = S.labels.map((lab,f)=>
+    `<span class="row" style="display:inline-flex;margin-right:10px"><span class="swatch" style="background:${css(FAMCOL[f%FAMCOL.length])}"></span>${lab}</span>`).join('');
+
+  caption.innerHTML = `<b>${currentName}</b> — ${sys.name || S.systems.length+' turning system'+(S.systems.length>1?'s':'')}, `
+    + `${ALL.length} rays`;
+}
+
+// dropdown grouped by shape
+const sel=document.getElementById('system');
+const GROUP={T:"Tetrahedral (T)", O:"Octahedral (O)", I:"Icosahedral (I)"};
+const groups={T:[],O:[],I:[]};
+Object.keys(TURNING).forEach(n=>groups[TURNING[n].shape].push(n));
+["T","O","I"].forEach(g=>{
+  const og=document.createElement('optgroup'); og.label=GROUP[g];
+  groups[g].forEach(n=>{ const ns=TURNING[n].systems.length;
+    const o=document.createElement('option'); o.value=n;
+    o.textContent=`${n} — ${ns} system${ns>1?'s':''}`; og.appendChild(o); });
+  sel.appendChild(og);
+});
+sel.addEventListener('change',()=>loadSystem(sel.value));
+
+// click a ray -> turn by its own allowed step (2π/n)
+const raycaster=new THREE.Raycaster(), mouse=new THREE.Vector2(); let downXY=null;
+const ball=scene.children.find(c=>c.geometry && c.geometry.type==='SphereGeometry');
+renderer.domElement.addEventListener('pointerdown', e=>downXY=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup', e=>{
+  if(!downXY) return; const moved=Math.hypot(e.clientX-downXY[0], e.clientY-downXY[1]); downXY=null;
+  if(moved>5) return;
+  const r=renderer.domElement.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1; mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  raycaster.setFromCamera(mouse, cam);
+  const hit=raycaster.intersectObject(ball)[0]; if(!hit) return;
+  const p=hit.point.clone().normalize();
+  let best=ALL[0], bd=-2; for(const rr of ALL){ const d=rr.v.dot(p); if(d>bd){bd=d;best=rr;} }
+  spinAxis=best.v.clone(); spinN=best.n; angle=0; build();
+  animating='once'; tweenStart=performance.now(); tweenTo=2*Math.PI/spinN;
+});
+
+function loop(){
+  requestAnimationFrame(loop);
+  if(animating==='once'){
+    const u=Math.min(1,(performance.now()-tweenStart)/TWEEN_MS), e=u*u*(3-2*u);
+    angle=e*tweenTo; rays.setRotationFromAxisAngle(spinAxis, angle);
+    if(u>=1){ animating='none'; angle=0; rays.setRotationFromAxisAngle(spinAxis,0);
+              ghostMat.opacity=0.95; alignEl.style.opacity=1;
+              setTimeout(()=>{ghostMat.opacity=0.3; alignEl.style.opacity=0;},450); }
+  }
+  controls.update(); renderer.render(scene, cam);
+}
+loop();
+sel.value="Cube - faces (Rubik's Cube)";
+loadSystem(sel.value);
+window.addEventListener('resize', ()=>{ cam.aspect=view.clientWidth/view.clientHeight;
+  cam.updateProjectionMatrix(); renderer.setSize(view.clientWidth, view.clientHeight); });
+</script>
+</body>
+</html>

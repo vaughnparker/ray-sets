@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>The 16 ray-sets</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  #app{display:flex;height:100vh;overflow:hidden;}
+  #view{flex:1;position:relative;}
+  #panel{width:330px;background:var(--panel);padding:18px;overflow-y:auto;border-left:1px solid #222a37;}
+  h1{font-size:16px;margin:0 0 6px;}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.5;}
+  label{font-size:12px;color:var(--muted);display:block;margin:12px 0 6px;}
+  select{width:100%;padding:8px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;}
+  .check{display:flex;align-items:center;gap:7px;margin-top:10px;cursor:pointer;font-size:12px;color:var(--muted);}
+  .check input{width:auto;}
+  .readout{background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:12px;font-size:13px;margin-top:14px;line-height:1.6;}
+  .fam{display:flex;align-items:center;gap:8px;margin:3px 0;}
+  .swatch{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  .val{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;}
+  input[type=range]{width:100%;}
+  .big{font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:6px;}
+  #caption{position:absolute;left:0;right:0;bottom:0;padding:14px 20px;background:linear-gradient(transparent,rgba(6,8,12,.9));font-size:13px;color:var(--muted);pointer-events:none;}
+  #align{position:absolute;left:0;right:0;top:20px;text-align:center;font-size:14px;font-weight:700;color:#37d67a;opacity:0;transition:opacity .12s;pointer-events:none;}
+  .hint{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.5;}
+  .why{background:#0f141d;border:1px solid #2a3342;border-left:3px solid #37d67a;border-radius:8px;padding:11px 12px;font-size:12px;color:var(--ink);line-height:1.55;margin-top:4px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view"><div id="align">↻ lands on itself</div><div id="caption"></div></div>
+  <div id="panel">
+    <h1>The 16 ray-sets</h1>
+    <p class="sub">Every twisty-puzzle axis system with polyhedral symmetry — a bundle
+    of rays from the centre, the directions you can turn around.</p>
+
+    <div class="why"><b>Why these are special.</b> Spin the whole bundle around any one
+    of its own rays and it lands <b>exactly back on itself</b> — every arrow ends where
+    another began. A random handful of arrows won't do that: some ray would swing into
+    empty space and the puzzle would jam. These 16 are the only polyhedral bundles that
+    pass the test.</p>
+
+    <label>Ray-set</label>
+    <select id="system"></select>
+
+    <label>Spin about</label>
+    <select id="axis"></select>
+    <label class="check"><input type="checkbox" id="loop"> keep spinning</label>
+    <p class="hint">Or <b>click any ray</b> in the view to spin the bundle once around
+    it and watch it land back on itself.</p>
+
+    <label>Sphere opacity: <span class="val" id="opval">0.55</span></label>
+    <input type="range" id="opacity" min="0.1" max="1" step="0.05" value="0.55"/>
+
+    <div class="readout">
+      <div class="big" id="count">0 rays</div>
+      <div id="spininfo"></div>
+      <div id="families" style="margin-top:8px;"></div>
+    </div>
+
+    <p class="hint">Colours group the rays into <b>families</b> — rays the symmetry
+    shuffles among themselves (a cube's faces, corners, edges). The white ray is the
+    current spin axis; it sits still while the rest turn around it.</p>
+  </div>
+</div>
+
+<script src="systems_data.js"></script>
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+<script>
+const PALETTE = [0x3b7dd8, 0xe8833a, 0x2ca58d];   // one colour per family
+const AXISCOL = 0xffffff;
+const css = h => "#" + h.toString(16).padStart(6, "0");
+
+const view = document.getElementById('view'), caption = document.getElementById('caption');
+const alignEl = document.getElementById('align');
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0b0e14);
+const cam = new THREE.PerspectiveCamera(45, view.clientWidth/view.clientHeight, 0.01, 100);
+cam.position.set(3.0, 2.2, 3.0);
+const renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(devicePixelRatio);
+renderer.setSize(view.clientWidth, view.clientHeight); view.appendChild(renderer.domElement);
+const controls = new THREE.OrbitControls(cam, renderer.domElement); controls.enableDamping = true;
+
+// solid dark shaded ball, matching radio-piece-explorer's look
+scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+const keyLight = new THREE.DirectionalLight(0xffffff, 0.85); keyLight.position.set(0.5, 0.85, 0.6); scene.add(keyLight);
+const refSphere = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 48),
+  new THREE.MeshStandardMaterial({color:0x232a36, roughness:1.0, metalness:0.0, transparent:true, opacity:0.55}));
+scene.add(refSphere);
+
+const ghosts = new THREE.Group(); scene.add(ghosts);   // static rest positions
+const rays = new THREE.Group(); scene.add(rays);       // the live bundle
+const ghostMat = new THREE.MeshBasicMaterial({color:0x8a93a6, transparent:true, opacity:0.32});
+
+function clear(g){ while(g.children.length){ const c=g.children.pop(); if(c.geometry&&c.geometry.dispose) c.geometry.dispose(); } }
+function vecs(name){ const out=[]; SYSTEMS[name].forEach((o,f)=>o.rays.forEach(v=>out.push({v:new THREE.Vector3(v[0],v[1],v[2]).normalize(), f}))); return out; }
+function turnOrder(axis, all){
+  for(const n of [5,4,3,2]){ const a=2*Math.PI/n;
+    if(all.every(r=>{const rr=r.v.clone().applyAxisAngle(axis,a); return all.some(s=>s.v.distanceTo(rr)<1e-4);})) return n; }
+  return 1;
+}
+
+let currentName, ALL=[], spinAxis=new THREE.Vector3(0,0,1), spinN=4;
+let angle=0, animating='none', tweenStart=0, tweenTo=0, loopMode=false;
+const TWEEN_MS=1400, LOOP_SPEED=0.3, RAYLEN=1.25;   // rays poke out slightly past the r=1 ball
+const clock=new THREE.Clock();
+
+function rebuild(){
+  clear(ghosts); clear(rays);
+  ALL.forEach(({v,f})=>{
+    const tip=v.clone().multiplyScalar(RAYLEN);
+    const g=new THREE.Mesh(new THREE.SphereGeometry(0.035,10,10), ghostMat); g.position.copy(tip); ghosts.add(g);
+    const isAxis=Math.abs(v.dot(spinAxis))>0.9999;
+    const color=isAxis?AXISCOL:PALETTE[f%PALETTE.length];
+    rays.add(new THREE.ArrowHelper(v, new THREE.Vector3(0,0,0), RAYLEN, color, 0.16, isAxis?0.10:0.075));
+  });
+  rays.setRotationFromAxisAngle(spinAxis, angle);
+  const orbits=SYSTEMS[currentName];
+  document.getElementById('count').textContent = ALL.length+" rays";
+  document.getElementById('spininfo').innerHTML =
+    `spin axis: <b>${spinN}-fold</b> — lands on itself every <b>${Math.round(360/spinN)}°</b>`;
+  document.getElementById('families').innerHTML = orbits.map((o,f)=>
+    `<div class="fam"><span class="swatch" style="background:${css(PALETTE[f%PALETTE.length])}"></span>${o.label}</div>`).join('');
+  caption.innerHTML = `<b>${currentName}</b> — ${orbits.length} famil${orbits.length>1?'ies':'y'}, ${ALL.length} rays`;
+}
+
+function setAxis(v, doSpin){
+  spinAxis=v.clone(); spinN=turnOrder(spinAxis, ALL); angle=0; rebuild();
+  if(loopMode) animating='loop';
+  else if(doSpin){ animating='once'; tweenStart=performance.now(); tweenTo=2*Math.PI/spinN; }
+  else animating='none';
+}
+
+function loadRayset(name){
+  currentName=name; ALL=vecs(name);
+  buildAxisOptions();
+  setAxis(ALL.find(r=>r.f===0).v, false);   // static by default
+}
+
+// ---- dropdowns ----
+const sel=document.getElementById('system'), axisSel=document.getElementById('axis');
+const GROUP={Tetrahedron:"Tetrahedral (T)", Cube:"Octahedral (O)", Dodecahedron:"Icosahedral (I)", Dodeca:"Icosahedral (I)"};
+const groups={};
+Object.keys(SYSTEMS).forEach(n=>{ (groups[GROUP[n.split(' ')[0]]] ||= []).push(n); });
+["Tetrahedral (T)","Octahedral (O)","Icosahedral (I)"].forEach(g=>{
+  if(!groups[g]) return;
+  const og=document.createElement('optgroup'); og.label=g;
+  groups[g].forEach(n=>{ const nr=SYSTEMS[n].reduce((a,o)=>a+o.rays.length,0);
+    const o=document.createElement('option'); o.value=n; o.textContent=`${n} — ${nr} rays`; og.appendChild(o); });
+  sel.appendChild(og);
+});
+function buildAxisOptions(){
+  axisSel.innerHTML='';
+  SYSTEMS[currentName].forEach((o,f)=>{
+    const n=turnOrder(ALL.find(r=>r.f===f).v, ALL);
+    const opt=document.createElement('option'); opt.value=f; opt.textContent=`${o.label} — ${n}-fold`; axisSel.appendChild(opt);
+  });
+}
+sel.addEventListener('change', ()=>loadRayset(sel.value));
+axisSel.addEventListener('change', ()=>setAxis(ALL.find(r=>r.f===parseInt(axisSel.value)).v, true));
+document.getElementById('loop').addEventListener('change', e=>{
+  loopMode=e.target.checked;
+  if(loopMode){ animating='loop'; }
+  else { animating='none'; angle=0; rays.setRotationFromAxisAngle(spinAxis, 0); ghostMat.opacity=0.32; alignEl.style.opacity=0; }
+});
+const opSlider=document.getElementById('opacity');
+opSlider.addEventListener('input', ()=>{
+  const o=parseFloat(opSlider.value); refSphere.material.opacity=o;
+  document.getElementById('opval').textContent=o.toFixed(2);
+});
+
+// ---- click a ray to spin about it (pick nearest ray to the click point on the sphere) ----
+const raycaster=new THREE.Raycaster(), mouse=new THREE.Vector2(); let downXY=null;
+renderer.domElement.addEventListener('pointerdown', e=>downXY=[e.clientX,e.clientY]);
+renderer.domElement.addEventListener('pointerup', e=>{
+  if(!downXY) return; const moved=Math.hypot(e.clientX-downXY[0], e.clientY-downXY[1]); downXY=null;
+  if(moved>5) return;                                   // it was a drag, not a click
+  const r=renderer.domElement.getBoundingClientRect();
+  mouse.x=((e.clientX-r.left)/r.width)*2-1; mouse.y=-((e.clientY-r.top)/r.height)*2+1;
+  raycaster.setFromCamera(mouse, cam);
+  const hit=raycaster.intersectObject(refSphere)[0]; if(!hit) return;
+  const p=hit.point.clone().normalize();
+  let best=ALL[0], bd=-2; for(const rr of ALL){ const d=rr.v.dot(p); if(d>bd){bd=d;best=rr;} }
+  setAxis(best.v, true);
+});
+
+// ---- animation ----
+function loop(){
+  requestAnimationFrame(loop);
+  const dt=clock.getDelta();
+  if(animating==='loop' && spinN>1){
+    angle += LOOP_SPEED*dt; rays.setRotationFromAxisAngle(spinAxis, angle);
+    const step=2*Math.PI/spinN; let ph=((angle%step)+step)%step; ph=Math.min(ph, step-ph);
+    const aligned=ph<0.05; ghostMat.opacity=aligned?0.95:0.32; alignEl.style.opacity=aligned?1:0;
+  } else if(animating==='once'){
+    const u=Math.min(1,(performance.now()-tweenStart)/TWEEN_MS), e=u*u*(3-2*u);
+    angle=e*tweenTo; rays.setRotationFromAxisAngle(spinAxis, angle);
+    if(u>=1){ animating='none'; angle=0; rays.setRotationFromAxisAngle(spinAxis,0);
+              ghostMat.opacity=0.95; alignEl.style.opacity=1; setTimeout(()=>{ghostMat.opacity=0.32; alignEl.style.opacity=0;},450); }
+  }
+  controls.update(); renderer.render(scene, cam);
+}
+
+loop();
+sel.value="Cube - faces (Rubik's Cube)";
+loadRayset(sel.value);
+window.addEventListener('resize', ()=>{ cam.aspect=view.clientWidth/view.clientHeight; cam.updateProjectionMatrix(); renderer.setSize(view.clientWidth, view.clientHeight); });
+</script>
+</body>
+</html>

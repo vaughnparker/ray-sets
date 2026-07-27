@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Cut-regime strips (elementary systems)</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;padding:28px 34px 60px;}
+  h1{font-size:20px;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 18px;line-height:1.5;max-width:880px;}
+  .toggle{display:flex;gap:8px;margin-bottom:26px;}
+  .toggle button{padding:8px 14px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;cursor:pointer;}
+  .toggle button.active{background:#1f6feb;border-color:#1f6feb;color:#fff;font-weight:600;}
+  .sys{margin-bottom:26px;width:100%;}
+  .syshead{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;}
+  .sysname{font-size:15px;font-weight:700;}
+  .rays{font-size:12px;color:var(--muted);}
+  .badge{margin-left:auto;font-size:12px;font-weight:800;background:rgba(76,201,240,.15);color:#4cc9f0;padding:3px 10px;border-radius:6px;}
+  .strip{display:flex;height:54px;border:1px solid #222a37;border-radius:6px;overflow:hidden;}
+  .seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:rgba(255,255,255,.92);text-shadow:0 1px 2px rgba(0,0,0,.6);cursor:pointer;}
+  .seg.zw{outline:1.5px solid rgba(255,255,255,.85);outline-offset:-1px;z-index:2;}
+  .seg.zw.deg{outline-style:dashed;outline-width:2px;}
+  .seg.bound{cursor:default;}
+  .seg:hover{filter:brightness(1.3);}
+  .seg.bound:hover{filter:none;}
+  .ends{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:3px;}
+  #tip{position:fixed;pointer-events:none;background:#0b0e14;border:1px solid #2a3342;border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.6;opacity:0;transition:opacity .1s;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.5);}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:5px;}
+</style>
+</head>
+<body>
+  <h1>Cut-regime strips — elementary systems</h1>
+  <p class="sub">Each strip is one elementary axis system across cut depth
+  (<b>left = shallow</b>, simplest · <b>right = deep</b>, most complex). A puzzle here is
+  defined by its <b>surface</b> — the pieces you can see and solve. <b>Wide cells</b> are
+  full-width <b>regimes</b>: puzzles you can build across a whole range of depths (cell
+  width = that range). <b>Thin outlined cells</b> are <b>zero-width regimes</b>: distinct
+  puzzles that exist at a single exact (usually irrational) depth, where the surface is
+  momentarily unique — a piece pinched to a point (the <b>dashed</b> one is the degenerate
+  cut straight through the centre). <b>Hairlines</b> are plain <b>boundaries</b>, where the
+  surface doesn't change. Colour = surface piece count or piece type; hover any cell for
+  its surface <i>and</i> total breakdown.</p>
+  <div class="toggle">
+    <button id="mTotal" class="active">Colour by surface count</button>
+    <button id="mType">Colour by piece type (max weight)</button>
+  </div>
+  <p class="sub" style="margin-bottom:22px;"><b>Why the tetrahedron has no depth-0 cell.</b>
+  The degenerate depth-0 cut (the dashed zero-width regime) appears for every system
+  <i>except</i> the tetrahedron. A
+  depth-0 collapse happens when opposite cut planes <b>merge</b> — the cuts <code>x·u=d</code>
+  and <code>x·u=−d</code> become the same plane at <code>d=0</code> — which needs the rays
+  to come in antipodal pairs (as in the 3×3×3 → 2×2×2 collapse). The tetrahedron's rays
+  have <b>no antipodal partners</b> — opposite a vertex is a face, not another vertex — so
+  nothing merges at the centre, and its deepest regime simply runs all the way to the edge.</p>
+  <div id="systems"></div>
+  <div id="tip"></div>
+
+<script src="surface_data.js"></script>
+<script>
+const TYPE_COLORS={1:[255,107,107],2:[76,201,240],3:[255,209,102],4:[102,217,142],5:[176,139,240],6:[255,159,67]};
+function tc(w){const c=TYPE_COLORS[w];if(c)return c;const g=Math.min(220,110+14*(w-6));return[g,g,g];}
+function csc(w){const c=tc(w);return `rgb(${c[0]},${c[1]},${c[2]})`;}
+function tname(w){return {1:"singly-gripped (w1)",2:"doubly (w2)",3:"triply (w3)"}[w]||("weight "+w);}
+const STOPS=[[13,20,40],[36,70,130],[41,182,246],[52,199,142],[255,209,102],[255,120,60]];
+function heat(t){t=Math.max(0,Math.min(1,t));const x=t*(STOPS.length-1),i=Math.floor(x),f=x-i;
+  const a=STOPS[i],b=STOPS[Math.min(i+1,STOPS.length-1)];
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;}
+const maxw=h=>{const k=Object.keys(h);return k.length?Math.max(...k.map(Number)):1;};
+const bkList=h=>Object.keys(h).map(Number).sort((a,b)=>a-b)
+  .map(w=>`<span class="sw" style="background:${csc(w)}"></span>${tname(w)}: <b>${h[w]}</b>`).join('<br>');
+
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;mv(e);}
+function mv(e){tip.style.left=(e.clientX+16)+'px';tip.style.top=(e.clientY+14)+'px';}
+function hide(){tip.style.opacity=0;}
+
+// One system, deep(0) -> shallow(1). A puzzle is defined by its SURFACE config
+// (ext_hist), so we segment on that. Intervals -> full-width regimes. A wall (or the
+// degenerate depth-0 cut) whose surface differs from BOTH neighbours is a zero-width
+// regime (a distinct puzzle at one exact depth); otherwise it's a plain boundary.
+function stripOf(S){
+  const ek=e=>JSON.stringify(e.ext_hist);
+  const ivs=S.entries.filter(e=>e.kind==='interval').sort((a,b)=>a.d_lo-b.d_lo);
+  const walls=S.entries.filter(e=>e.kind==='wall' && Math.abs(e.d)>1e-9).sort((a,b)=>a.d-b.d);
+  const items=[];
+  const deg=S.entries.find(e=>e.kind==='wall' && Math.abs(e.d)<1e-9);
+  // degenerate depth-0 cut, at the deep end — shown only when it's its own surface regime
+  if(deg && ivs.length && ek(deg)!==ek(ivs[0]))
+    items.push({kind:'zw', deg:true, d:0, e:deg});
+  ivs.forEach((iv,k)=>{
+    items.push({kind:'regime', d_lo:iv.d_lo, d_hi:iv.d_hi, e:iv});
+    if(k<walls.length){
+      const w=walls[k], zw = ek(w)!==ek(ivs[k]) && ek(w)!==ek(ivs[k+1]);
+      items.push({kind: zw?'zw':'bound', d:w.d, e:w});
+    }
+  });
+  return items;   // index 0 = deepest
+}
+
+let mode='count';
+function render(){
+  const cont=document.getElementById('systems'); cont.innerHTML='';
+  SURFACE_DATA.order.forEach(name=>{
+    const S=SURFACE_DATA.systems[name], items=stripOf(S);
+    const scored=items.filter(x=>x.kind!=='bound');           // regimes + zero-width regimes carry a surface count
+    const smin=Math.min(...scored.map(x=>x.e.ext_total)), smax=Math.max(...scored.map(x=>x.e.ext_total));
+    const nReg=items.filter(x=>x.kind==='regime').length;
+    const nZW=items.filter(x=>x.kind==='zw').length;
+    const sys=document.createElement('div'); sys.className='sys';
+    sys.innerHTML=`<div class="syshead"><span class="sysname">${name}</span><span class="rays">${S.rays} rays</span><span class="badge">${nReg} robust${nZW?` · ${nZW} critical`:''}</span></div>`;
+    const strip=document.createElement('div'); strip.className='strip';
+    items.slice().reverse().forEach(it=>{                     // shallow -> deep (left -> right)
+      const e=it.e, seg=document.createElement('div');
+      seg.className='seg'+(it.kind==='zw'?' zw':'')+(it.deg?' deg':'')+(it.kind==='bound'?' bound':'');
+      if(it.kind==='bound'){
+        seg.style.flex='0 0 2px'; seg.style.background='#39424f';
+        const html=`<b style="color:#98a2b3">boundary</b> · <span style="color:#98a2b3">depth ${it.d.toFixed(4)}</span><br><span style="color:#98a2b3">surface unchanged across this depth</span>`;
+        seg.addEventListener('mousemove',ev=>showTip(ev,html));
+        seg.addEventListener('mouseleave',hide);
+        strip.appendChild(seg); return;
+      }
+      seg.style.background = mode==='count' ? heat(smax>smin?(e.ext_total-smin)/(smax-smin):0.5) : csc(maxw(e.ext_hist));
+      if(it.kind==='regime'){
+        seg.style.flex=`${Math.max(1e-4, it.d_hi-it.d_lo)*1000} 0 2px`;
+        if((it.d_hi-it.d_lo)>0.03) seg.textContent=e.ext_total;
+      } else {
+        seg.style.flex='0 0 8px';                             // zero-width regime -> a thin, outlined cell
+      }
+      const nm=e.name?`<b style="color:#4cc9f0">${e.rad?'Radiolarian '+e.rad+' — ':''}${e.name}</b><br>`:'';
+      const head = it.kind==='regime'
+          ? `<b>regime</b> · <span style="color:#98a2b3">depth ${it.d_lo.toFixed(4)} – ${it.d_hi.toFixed(4)}</span>`
+          : it.deg
+          ? `<b style="color:#ff9f43">zero-width regime</b> · <span style="color:#98a2b3">depth 0 (through centre)</span>`
+          : `<b style="color:#fff">zero-width regime</b> · <span style="color:#98a2b3">exact depth ${it.d.toFixed(4)}</span>`;
+      const html=`${nm}${head}<br><b>${e.ext_total} surface pieces</b><br>${bkList(e.ext_hist)}`
+               + `<br><span style="color:#98a2b3">${e.all_total} total (incl. buried)</span>`;
+      seg.addEventListener('mousemove',ev=>showTip(ev,html));
+      seg.addEventListener('mouseleave',hide);
+      strip.appendChild(seg);
+    });
+    sys.appendChild(strip);
+    const ends=document.createElement('div'); ends.className='ends';
+    ends.innerHTML=`<span>← shallow · simplest</span><span>deep · most complex →</span>`;
+    sys.appendChild(ends);
+    cont.appendChild(sys);
+  });
+}
+document.getElementById('mTotal').addEventListener('click',()=>{mode='count';setBtn();render();});
+document.getElementById('mType').addEventListener('click',()=>{mode='type';setBtn();render();});
+function setBtn(){document.getElementById('mTotal').classList.toggle('active',mode==='count');document.getElementById('mType').classList.toggle('active',mode==='type');}
+setBtn(); render();
+</script>
+</body>
+</html>

@@ -188,81 +188,63 @@ $T$, $O$ and $I$ are the *only* possibilities.
 
 ## The code
 
-The scripts need only NumPy and matplotlib; the notebook also needs `ipywidgets`
-and `ipympl` for its interactive controls.
+The Python backend needs only NumPy, plus SciPy for the cut-depth data. (The retired
+matplotlib viewers and notebooks in [`old/`](old) also used matplotlib / `ipywidgets`.)
 
 ```bash
 pip install -r requirements.txt
 ```
 
-The repository is organised as three investigations, in reading order — the
-directions you can turn, then how far, then where you cut:
+The canonical maths lives in **[`lib/`](lib)** — it builds the groups, proves the
+results, and generates the data the pages read. Each **`tutorial_*`** folder is one
+self-contained, offline HTML stop.
 
-### [`1_ray_sets/`](1_ray_sets) — the 16
+### [`lib/`](lib) — the backend
 
 | file | what it does |
 |---|---|
-| `raysets.py` | builds T/O/I, extracts ray families, enumerates the 21 candidates, proves the collapse to 16; also `cyclic(n)` and `dihedral(n)` for the non-polyhedral families |
-| `rayview.py` | interactive 3D viewer — drag to rotate, arrow keys to step through |
-| `rayview.ipynb` | the same viewer with a dropdown, plus a $C_n$ / $D_n$ explorer with a slider for `n` |
-| `preview.py` | regenerates the three montage images |
+| `raysets.py` | builds T/O/I, extracts ray families, enumerates the 21 candidates, **proves** the collapse to 16 with explicit orthogonal maps; also `cyclic(n)` / `dihedral(n)` for the non-polyhedral families |
+| `turning_systems.py` | enumerates the **21** turning systems — turn orders that survive closure and equivariance |
+| `gen_turning.py` | packages that into `tutorial_6_turning_systems/turning_data.js` |
 
 ```bash
-cd 1_ray_sets
-python raysets.py     # print all 21, then the de-duplication report
-python rayview.py     # open the interactive viewer
-python preview.py     # rebuild the three montage PNGs
+cd lib
+python raysets.py          # print all 21 candidates, then the de-duplication report
+python turning_systems.py  # print the 21 turning systems
+python gen_turning.py      # regenerate tutorial_6's data
 ```
 
-Another way to *see* the same 16, in its own subfolder with a script, an interactive
-notebook, and a montage:
-
-#### [`1_ray_sets/polyhedra/`](1_ray_sets/polyhedra) — as solids
-
-Every ray-set is the face set of one convex polyhedron: put a plane perpendicular to
-each ray and a face appears for every ray. `O · 6` is a cube, `O · 8` an octahedron,
-`I · 12` a dodecahedron — the Megaminx. The combinations give the truncated solids
-(`I · 12+20` is the soccer ball). Faces are coloured by ray family.
-
-![The 16 face-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra.png)
-
-The **dual** construction — the convex hull of the ray tips — makes each ray a
-*vertex* instead of a face, giving the vertex-turning polyhedron. `O · 6` becomes an
-octahedron, `I · 12` an icosahedron. It is the same axis system seen the other way
-up; the notebook toggles between the two.
-
-![The 16 vertex-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra_dual.png)
-
-**Interactive version:**
-[`tutorial_5_polyhedra/ray-set-polyhedra.html`](tutorial_5_polyhedra) is a three.js
-port — pick any ray-set and rotate its face-turning solid or its dual live in the
-browser.
+The cut-depth backend (`regime_core.py` and its data generators) still lives in
+[`tutorial_7_cut_depths/`](tutorial_7_cut_depths); folding it into `lib/` is planned
+(see [`tutorial_plan.md`](tutorial_plan.md)). The montage PNGs stay under `1_ray_sets/`
+as static assets.
 
 ### [`tutorial_3_ray_sets/`](tutorial_3_ray_sets) — the 16, interactive
 
 A self-contained three.js browser for the 16 ray-sets as ray bundles: pick any one and
 spin the bundle about a ray (or click a ray) to watch it land **exactly back on
 itself** — the closure property that makes these the only valid polyhedral bundles.
-The interactive companion to `1_ray_sets/rayview.py`. See its
+The interactive successor to the retired `rayview` matplotlib viewer. See its
 [README](tutorial_3_ray_sets/README.md).
 
 ### [`tutorial_5_polyhedra/`](tutorial_5_polyhedra) — the 16 as solids, interactive
 
-A self-contained three.js port of the `1_ray_sets/polyhedra` montages: pick any of the
-16 ray-sets and see its **face-turning** solid (a face per ray, coloured by family), or
-toggle to the **vertex-turning dual**. Drag to orbit — the shell is cosmetic, what
-defines the puzzle is the ray-set. See its [README](tutorial_5_polyhedra/README.md).
+Every ray-set is the face set of one convex polyhedron: put a plane perpendicular to
+each ray and a face appears for every ray. `O · 6` is a cube, `O · 8` an octahedron,
+`I · 12` a dodecahedron — the Megaminx; the combinations give the truncated solids
+(`I · 12+20` is the soccer ball).
 
-### [`2_turning_systems/`](2_turning_systems) — the 21
+![The 16 face-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra.png)
 
-Adds *how far* each ray may turn: the enumeration of the **21** turning systems on the
-16 ray-sets. `gen_turning.py` packages the result for the interactive stop below.
+The **dual** — the convex hull of the ray tips — makes each ray a *vertex* instead of a
+face: `O · 6` becomes an octahedron, `I · 12` an icosahedron. The same axis system seen
+the other way up.
 
-```bash
-cd 2_turning_systems
-python turning_systems.py     # print the 21
-python gen_turning.py         # -> turning_data.js (data for tutorial_6)
-```
+![The 16 vertex-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra_dual.png)
+
+The interactive page lets you pick any ray-set, rotate its face-turning solid, and
+toggle to the dual live in the browser — the shell is cosmetic, what defines the puzzle
+is the ray-set. See its [README](tutorial_5_polyhedra/README.md).
 
 ### [`tutorial_6_turning_systems/`](tutorial_6_turning_systems) — the 21, interactive
 
@@ -274,12 +256,6 @@ Also holds the explainers
 [`turning_systems.md`](tutorial_6_turning_systems/turning_systems.md)) and its own
 [README](tutorial_6_turning_systems/README.md).
 
-### [`3_cut_depths/`](3_cut_depths) — where you cut
-
-Notes on the cut-depth question — why the puzzle count turns infinite, and how the
-regimes are counted. The computation and visualization live in
-[`tutorial_7_cut_depths/`](tutorial_7_cut_depths).
-
 ### [`tutorial_7_cut_depths/`](tutorial_7_cut_depths) — cut depths, computed and explored
 
 Enumerates each axis system's cut-depth **regimes** — how the pieces change as the
@@ -287,7 +263,8 @@ cut depth varies — and shows them three ways: a 3-D piece explorer
 (`radio-piece-explorer.html`), depth strips for the elementary systems
 (`regime-heatmap.html`), and 2-D depth maps for the compound systems
 (`compound-diagram.html`). Elementary systems are exact; compound systems are grid
-lower bounds. See its [README](tutorial_7_cut_depths/README.md).
+lower bounds. The prose notes on why the puzzle count turns infinite now live here too
+(`cut_depths.md`). See its [README](tutorial_7_cut_depths/README.md).
 
 Nothing is hard-coded. The groups are closed from two rotations each, the families
 are found as orbits, and the 21 → 16 collapse is **proved** rather than asserted:

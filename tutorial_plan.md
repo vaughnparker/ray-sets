@@ -43,9 +43,8 @@ Mastermorphix" note.
 Pick a ray-set and switch between its turning systems; each ray shows a turn-order
 polygon (square = 4-fold, triangle = 3-fold, bar = half-turn), so the Domino's split
 of the 6-family is visible. Click a ray to turn it by its own allowed step. Data from
-`2_turning_systems/gen_turning.py` (wraps `turning_systems.py`).
-*Teaches:* the 16 → 21 refinement (see
-[`2_turning_systems`](2_turning_systems)).
+`lib/gen_turning.py` (wraps `lib/turning_systems.py`).
+*Teaches:* the 16 → 21 refinement.
 
 ## The cut-depth explorer
 
@@ -108,25 +107,27 @@ three different fates:
    collapse with explicit orthogonal maps), `turning_systems.py`, `regime_core.py`,
    and the data generators. This is the repo's rigor and it produces
    `systems_data.js` / `surface_data.js` / `compound_data.js`. Treat Python as the
-   **backend** (proofs + data generation), HTML as the frontend. Ideally consolidate
-   the canonical geometry into one `lib/` — T/O/I construction is currently
-   **duplicated** between `raysets.py` and `tutorial_7_cut_depths/regime_core.py`.
+   **backend** (proofs + data generation), HTML as the frontend. `lib/` now holds
+   `raysets.py` + `turning_systems.py`; the cut-depth backend hasn't moved yet, so
+   T/O/I construction is still **duplicated** between `lib/raysets.py` and
+   `tutorial_7_cut_depths/regime_core.py`.
 2. **Prose `.md` explainers — fold into HTML** as the stops that host them are built
    (`turning_systems.md`, `what_is_a_turning_system.md`, `cut_depths.md`, `klein.md`).
 3. **matplotlib viewers / montages — archive to `old/`** once an HTML stop supersedes
    each: `rayview` → done (stop #3), `polyhedra` → done (stop #5). These two are ready
    to retire now.
 
-Gating per folder:
-- `3_cut_depths/` — closest; just `cut_depths.md` notes, compute/viz already in
-  `tutorial_7`. Fold the notes into a stop, then archive.
-- `1_ray_sets/` — `great_circles` retired to `old/` (blocker gone). Remaining: archive
-  the `rayview` matplotlib pieces (superseded by stop #3), and relocate `raysets.py`'s
-  proof role to `lib/` (step B). `polyhedra/` can archive too (superseded by stop #5).
-- `2_turning_systems/` — stop #6 built; prose (`turning_systems.md`,
-  `what_is_a_turning_system.md`) moved into `tutorial_6_turning_systems/`. Only the
-  Python remains (`turning_systems.py`, `gen_turning.py`) — it moves in the `lib/`
-  consolidation (step B), after which this folder is empty and can go.
+**Done (2026-07-27):** `lib/` created — `raysets.py`, `turning_systems.py`,
+`gen_turning.py`. `2_turning_systems` and `3_cut_depths` removed; `1_ray_sets` reduced
+to the montage PNGs (kept as README assets). Prose moved to its stop
+(`what_is_a_turning_system.md` + `turning_systems.md` → `tutorial_6`, `cut_depths.md` →
+`tutorial_7`). matplotlib retired to `old/` (`rayview`, `preview`, `polyhedra`,
+`great_circles`).
 
-Retire folders as they empty out, rather than moving them before their contents have
-somewhere to go.
+**Remaining (the backend de-dup pass):** the cut-depth backend (`regime_core.py` + the
+data generators `gen_systems.py`, `dump_all_surface.py`, `precompute_*.py`, `jsonfmt.py`)
+still lives in `tutorial_7_cut_depths/`, so the T/O/I construction stays **duplicated**
+between `lib/raysets.py` and `regime_core.py`. Folding those into `lib/` and unifying the
+group code is the next backend pass — deferred. Note: a pure move needs **no data
+regeneration** (it can't change generator output), so it won't cost the ~1 hr
+compound-grid recompute.
