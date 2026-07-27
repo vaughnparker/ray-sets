@@ -5,5 +5,5 @@ matplotlib
 ipywidgets
 ipympl
 
-# Only needed to regenerate the cut-regime data in 4_main_visualizations/:
+# Only needed to regenerate the cut-regime data in tutorial_7_cut_depths/:
 scipy

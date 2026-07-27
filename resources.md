@@ -34,7 +34,7 @@ External references on twisty puzzles and their axis systems.
   - Those model counts are cut-depth regime counts, and they run **higher than what this project's cut-depth analysis expects** (e.g. face-turning cube `O · 6`: 6 here vs ~4; face-turning icosahedron `I · 20`: 24 here vs ~13). Reconciling the difference is a task for [`3_cut_depths`](3_cut_depths).
 
 - **[Sphere cut visualizer](https://www.jaapsch.net/puzzles/sphere.htm)** — by Jaap Scherphuis (© 2003, 2018).
-  An interactive tool showing a sphere with symmetric cut planes — essentially the same idea as this repository's [`great_circles`](1_ray_sets/great_circles) and [`3_cut_depths`](3_cut_depths), built roughly twenty years earlier.
+  An interactive tool showing a sphere with symmetric cut planes — essentially the same idea as this repository's [`3_cut_depths`](3_cut_depths) / [`tutorial_7_cut_depths`](tutorial_7_cut_depths), built roughly twenty years earlier.
   - Drag to rotate; per-family colour sliders adjust **cut depth**, and pushing a slider all the way removes that family's cuts.
   - Switchable between tetrahedral, octahedral, icosahedral and other symmetries; demonstrates puzzles from the 2×2×2 up to the Megaminx, Dogic, Alexander's Star, and Impossiball.
   - Shareable URLs encode a chosen configuration.

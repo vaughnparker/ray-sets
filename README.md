@@ -214,8 +214,8 @@ python rayview.py     # open the interactive viewer
 python preview.py     # rebuild the three montage PNGs
 ```
 
-Two further ways to *see* the same 16, each in its own subfolder with a script,
-an interactive notebook, and a montage:
+Another way to *see* the same 16, in its own subfolder with a script, an interactive
+notebook, and a montage:
 
 #### [`1_ray_sets/polyhedra/`](1_ray_sets/polyhedra) — as solids
 
@@ -233,38 +233,61 @@ up; the notebook toggles between the two.
 
 ![The 16 vertex-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra_dual.png)
 
-#### [`1_ray_sets/great_circles/`](1_ray_sets/great_circles) — as cuts
+**Interactive version:**
+[`tutorial_5_polyhedra/ray-set-polyhedra.html`](tutorial_5_polyhedra) is a three.js
+port — pick any ray-set and rotate its face-turning solid or its dual live in the
+browser.
 
-For each ray, the great circle perpendicular to it is where the deepest cut about
-that axis meets the sphere — so this is the puzzle's cut pattern rather than its
-axes. The circles carve the sphere into regions, and those are the pieces of the
-deepest-cut puzzle: `O · 6` → 8 (a 2x2x2), `I · 12` → 32 (the Pentultimate). The
-count is exact, from Euler's $V - E + F = 2$.
+### [`tutorial_3_ray_sets/`](tutorial_3_ray_sets) — the 16, interactive
 
-![The 16 great-circle arrangements](1_ray_sets/great_circles/raysets_great_circles.png)
+A self-contained three.js browser for the 16 ray-sets as ray bundles: pick any one and
+spin the bundle about a ray (or click a ray) to watch it land **exactly back on
+itself** — the closure property that makes these the only valid polyhedral bundles.
+The interactive companion to `1_ray_sets/rayview.py`. See its
+[README](tutorial_3_ray_sets/README.md).
+
+### [`tutorial_5_polyhedra/`](tutorial_5_polyhedra) — the 16 as solids, interactive
+
+A self-contained three.js port of the `1_ray_sets/polyhedra` montages: pick any of the
+16 ray-sets and see its **face-turning** solid (a face per ray, coloured by family), or
+toggle to the **vertex-turning dual**. Drag to orbit — the shell is cosmetic, what
+defines the puzzle is the ray-set. See its [README](tutorial_5_polyhedra/README.md).
 
 ### [`2_turning_systems/`](2_turning_systems) — the 21
 
-Adds *how far* each ray may turn. See
-[`turning_systems.md`](2_turning_systems/turning_systems.md) for the result.
+Adds *how far* each ray may turn: the enumeration of the **21** turning systems on the
+16 ray-sets. `gen_turning.py` packages the result for the interactive stop below.
 
 ```bash
 cd 2_turning_systems
-python turning_systems.py
+python turning_systems.py     # print the 21
+python gen_turning.py         # -> turning_data.js (data for tutorial_6)
 ```
+
+### [`tutorial_6_turning_systems/`](tutorial_6_turning_systems) — the 21, interactive
+
+Pick a ray-set and switch between its turning systems; each ray shows a turn-order
+polygon (square = quarter, triangle = third, bar = half), so the Domino's split of the
+cube's face-family is visible, and clicking a ray turns it by its own allowed step.
+Also holds the explainers
+([`what_is_a_turning_system.md`](tutorial_6_turning_systems/what_is_a_turning_system.md),
+[`turning_systems.md`](tutorial_6_turning_systems/turning_systems.md)) and its own
+[README](tutorial_6_turning_systems/README.md).
 
 ### [`3_cut_depths/`](3_cut_depths) — where you cut
 
 Notes on the cut-depth question — why the puzzle count turns infinite, and how the
 regimes are counted. The computation and visualization live in
-[`4_main_visualizations/`](4_main_visualizations).
+[`tutorial_7_cut_depths/`](tutorial_7_cut_depths).
 
-### [`4_main_visualizations/`](4_main_visualizations) — cut depths, computed and explored
+### [`tutorial_7_cut_depths/`](tutorial_7_cut_depths) — cut depths, computed and explored
 
 Enumerates each axis system's cut-depth **regimes** — how the pieces change as the
-cut depth varies — and shows them in an interactive 3D viewer. Elementary systems
-are exact; compound systems are grid lower bounds. See its
-[README](4_main_visualizations/README.md).
+cut depth varies — and shows them three ways: a 3-D piece explorer
+(`radio-piece-explorer.html`), depth strips for the elementary systems
+(`regime-heatmap.html`), and 2-D depth maps for the compound systems
+(`compound-diagram.html`). Elementary systems are exact; compound systems are grid
+lower bounds. See its [README](tutorial_7_cut_depths/README.md).
 
 Nothing is hard-coded. The groups are closed from two rotations each, the families
 are found as orbits, and the 21 → 16 collapse is **proved** rather than asserted:
