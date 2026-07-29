@@ -19,7 +19,7 @@ External references on twisty puzzles and their axis systems.
 
 - **["The Radiolarian family"](https://www.reddit.com/r/twistypuzzles/comments/1ndwrh2/the_radiolarian_family/)** — a guide on r/twistypuzzles.
   A walkthrough of the 15 Radiolarians — Jason Smith's face-turning icosahedra (the `I · 20` ray-set) — with Twizzle Explorer links to play each in a simulator.
-  - Effectively a **cut-depth ladder for one ray-set**: Radiolarian 1 is a shallow face cut, and each successive number cuts deeper, ending at Radiolarian 15 — the deepest cut, straight through the centre (depth 0, each turn moves half the puzzle). Directly relevant to [`tutorial_7_cut_depths`](tutorial_7_cut_depths).
+  - Effectively a **cut-depth ladder for one ray-set**: Radiolarian 1 is a shallow face cut, and each successive number cuts deeper, ending at Radiolarian 15 — the deepest cut, straight through the centre (depth 0, each turn moves half the puzzle). Directly relevant to [`tutorial_7_elementary_cut_depths`](tutorial_7_elementary_cut_depths).
   - Distinguishes two kinds of cut: **Type A** (a depth where pieces *appear* — imprecise, the exact value doesn't matter) and **Type D** (a depth where pieces *disappear* — a precise critical depth, usually irrational). This is the same appear/disappear distinction that a cut-depth phase diagram computes.
   - Lists exact critical depths for the Type-D cuts, several golden-ratio-flavoured — e.g. Radiolarian 4 = Eitan's Star at $(\sqrt5-1)/2$, Radiolarian 2 at $\sqrt5/3$, Radiolarian 9 at $1/3$.
   - Notes the 15 are a deliberately chosen subset, not every face-turning icosahedron (intermediate ones like "4.5" and "8.5" exist).
@@ -31,10 +31,10 @@ External references on twisty puzzles and their axis systems.
   - Makes the same duality point this repo does — building the same bundles from dual solids yields nothing new — so these two families cover essentially all axis systems.
   - Compact puzzle codes: 3×3×3 = `C5`, Megaminx = `D5`, Helicopter Cube = `RD6`, Dino Cube = `O6`, Penultimate = `D12`, Big Chop = `RT56`.
   - Each axis system has a page of "**fundamental models**" — its cut-depth variants — with counts C **6**, O **8**, RD **14**, D **12**, I **24**, RT **56**. Per-system pages: [C-models](https://www.verypuzzle.com/other/c-models/), [I-models](https://www.verypuzzle.com/other/i-models/).
-  - Those model counts are cut-depth regime counts, and they run **higher than what this project's cut-depth analysis expects** (e.g. face-turning cube `O · 6`: 6 here vs ~4; face-turning icosahedron `I · 20`: 24 here vs ~13). Reconciling the difference is a task for [`tutorial_7_cut_depths`](tutorial_7_cut_depths).
+  - Those model counts are cut-depth regime counts, and they run **higher than what this project's cut-depth analysis expects** (e.g. face-turning cube `O · 6`: 6 here vs ~4; face-turning icosahedron `I · 20`: 24 here vs ~13). Reconciling the difference is a task for [`tutorial_7_elementary_cut_depths`](tutorial_7_elementary_cut_depths).
 
 - **[Sphere cut visualizer](https://www.jaapsch.net/puzzles/sphere.htm)** — by Jaap Scherphuis (© 2003, 2018).
-  An interactive tool showing a sphere with symmetric cut planes — essentially the same idea as this repository's [`tutorial_7_cut_depths`](tutorial_7_cut_depths), built roughly twenty years earlier.
+  An interactive tool showing a sphere with symmetric cut planes — essentially the same idea as this repository's [`tutorial_7_elementary_cut_depths`](tutorial_7_elementary_cut_depths), built roughly twenty years earlier.
   - Drag to rotate; per-family colour sliders adjust **cut depth**, and pushing a slider all the way removes that family's cuts.
   - Switchable between tetrahedral, octahedral, icosahedral and other symmetries; demonstrates puzzles from the 2×2×2 up to the Megaminx, Dogic, Alexander's Star, and Impossiball.
   - Shareable URLs encode a chosen configuration.

@@ -51,8 +51,9 @@
     <div class="why"><b>Same rays, different puzzle.</b> The cube's six face-axes carry
     <b>three</b> turning systems: all-4 is the <b>3×3×3</b>, two pairs dialed to half-turns
     is the <b>Domino</b>, all-2 is a tetrahedral edge-turning cube. Only a 4-fold axis can
-    be dialed down, and those live only on the cube faces — which is why just 4 of the 16
-    ray-sets have any freedom, giving <b>21</b> turning systems in all.</p>
+    be dialed down — 4 is the only <i>composite</i> turn order (see <i>Learn more</i>) —
+    and those live only on the cube faces, which is why just 4 of the 16 ray-sets have any
+    freedom, giving <b>21</b> turning systems in all.</p>
 
     <label>Ray-set</label>
     <select id="system"></select>
@@ -77,6 +78,22 @@
 
     <details class="more">
       <summary>Learn more</summary>
+      <p><b>Why only the square faces?</b> A turn order can be dialed down only to a
+      <i>proper divisor ≥ 2</i> of itself — which is possible exactly when the order is
+      <b>composite</b>. A prime order has nowhere to go. Of the only orders the
+      polyhedral groups allow — 2, 3, 4, 5 — just <b>4</b> is composite, and its one
+      proper divisor is 2. So the single move available anywhere is <b>4 → 2</b>, on the
+      cube's 4-fold face axes.</p>
+      <table>
+        <tr><th>order</th><th>prime / composite</th><th>can reduce to</th></tr>
+        <tr><td>2</td><td>prime</td><td>—</td></tr>
+        <tr><td>3</td><td>prime</td><td>—</td></tr>
+        <tr><td><b>4</b></td><td><b>composite</b></td><td><b>2</b></td></tr>
+        <tr><td>5</td><td>prime</td><td>—</td></tr>
+      </table>
+      <p>(Only 2, 3, 4, 5 occur at all because those are the only rotation orders in the
+      finite polyhedral groups T/O/I — the same theorem that gives exactly 16 ray-sets.
+      A 6-fold axis would be composite too, but polyhedral symmetry forbids it.)</p>
       <p><b>The two rules.</b> Not every assignment of turn orders is legal.
       <b>Closure:</b> turning a ray by its step must land the whole ray-set back on
       itself. <b>Constant on families:</b> rays the generated group shuffles together

@@ -27,7 +27,7 @@ reasons worth understanding: see [Beyond the 16](#beyond-the-16).
 For the formal definitions (and the finer notion of a *turning system*), see
 [`intro.md`](intro.md). This file is the practical tour.
 
-![The 16 distinct ray-sets](1_ray_sets/raysets_distinct.png)
+![The 16 distinct ray-sets](tutorial_3_ray_sets/raysets_distinct.png)
 
 ## The 16
 
@@ -94,7 +94,7 @@ The 16 are the ray-sets whose symmetry is **polyhedral** — T, O, or I. Two oth
 kinds of symmetry exist in 3D, and it's worth being precise about what they
 contribute, because the two behave very differently:
 
-![The non-polyhedral families](1_ray_sets/raysets_infinite.png)
+![The non-polyhedral families](tutorial_3_ray_sets/raysets_infinite.png)
 
 - **Prisms (dihedral, $D_n$)** — genuinely infinite. Its ray families come out as
   sizes $2, n, n$, for $2n+2$ rays in total, and the geometry really does change
@@ -166,6 +166,30 @@ provable. Restore turn orders and you get *turning systems*
 since $D_n$ runs unbounded. The clean finite theorem is about ray-sets, which is
 exactly why it's stated that way.
 
+### What "all possible puzzles" will mean
+
+This repository builds toward a complete map of the twisty puzzles that can exist —
+but "all" means something only with its boundaries drawn explicitly. The scope is
+deliberately fenced:
+
+- **Mechanism, not exterior.** We classify the internal cutting/turning structure, not
+  the outer shape or stickers — a Mastermorphix and a Rubik's Cube are the *same* object
+  here.
+- **Polyhedral symmetry only.** The infinite $C_n$ (turntables) and $D_n$ (prisms)
+  families are set aside; only $T$, $O$, $I$ are counted. (They're described in
+  [`intro.md`](intro.md) so the boundary stays honest.)
+- **Exactly one cut per ray.** Each turning axis gets a single cut. *Zero* cuts on a ray
+  just removes it — that's a smaller ray-set, not a new puzzle — and *two or more*
+  parallel cuts per ray is the $n\times n\times n$ tower, an unbounded source we exclude.
+  One cut is the minimal non-trivial puzzle; the Megaminx is the north star.
+- **No jumbling, no bandaging.** Turn orders are uniform per axis and every allowed turn
+  is always available. **Jumbling** (irrational cut geometry that grinds out ever more
+  pieces) and **bandaging** (moves blocked by position/state) are separate, orthogonal
+  complications that this classification does not attempt to capture.
+
+Inside that fence the goal is genuinely complete: every combination of a polyhedral
+ray-set, a valid turning system, and a one-cut-per-ray depth regime.
+
 ## The mathematics is not new
 
 The load-bearing theorem here is classical. That the only finite rotation groups in
@@ -205,19 +229,22 @@ self-contained, offline HTML stop.
 |---|---|
 | `raysets.py` | builds T/O/I, extracts ray families, enumerates the 21 candidates, **proves** the collapse to 16 with explicit orthogonal maps; also `cyclic(n)` / `dihedral(n)` for the non-polyhedral families |
 | `turning_systems.py` | enumerates the **21** turning systems — turn orders that survive closure and equivariance |
-| `gen_turning.py` | packages that into `tutorial_6_turning_systems/turning_data.js` |
+| `regime_core.py` | cut-depth geometry: T/O/I groups + the exact symmetry-cached piece counter |
+| `gen_turning.py`, `gen_systems.py`, `dump_all_surface.py`, `precompute_elementary.py`, `precompute_compound.py` | the data generators — they write `*_data.js` into the tutorial folders |
+| `jsonfmt.py`, `puzzle_names.json` | shared JSON formatter; puzzle-name table for cut-depth regimes |
 
 ```bash
 cd lib
 python raysets.py          # print all 21 candidates, then the de-duplication report
 python turning_systems.py  # print the 21 turning systems
-python gen_turning.py      # regenerate tutorial_6's data
+python gen_turning.py      # -> tutorial_6's data
+python gen_systems.py      # -> tutorial_7's ray coordinates
+python dump_all_surface.py # -> tutorial_7's exact cut-depth regimes (a few minutes)
 ```
 
-The cut-depth backend (`regime_core.py` and its data generators) still lives in
-[`tutorial_7_cut_depths/`](tutorial_7_cut_depths); folding it into `lib/` is planned
-(see [`tutorial_plan.md`](tutorial_plan.md)). The montage PNGs stay under `1_ray_sets/`
-as static assets.
+(`raysets.py` and `regime_core.py` still carry separate copies of the T/O/I
+construction; unifying them is a planned de-dup — see [`tutorial_plan.md`](tutorial_plan.md).)
+The montage PNGs live with their stops (`tutorial_3_ray_sets/`, `tutorial_5_polyhedra/`).
 
 ### [`tutorial_3_ray_sets/`](tutorial_3_ray_sets) — the 16, interactive
 
@@ -234,13 +261,13 @@ each ray and a face appears for every ray. `O · 6` is a cube, `O · 8` an octah
 `I · 12` a dodecahedron — the Megaminx; the combinations give the truncated solids
 (`I · 12+20` is the soccer ball).
 
-![The 16 face-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra.png)
+![The 16 face-turning polyhedra](tutorial_5_polyhedra/raysets_polyhedra.png)
 
 The **dual** — the convex hull of the ray tips — makes each ray a *vertex* instead of a
 face: `O · 6` becomes an octahedron, `I · 12` an icosahedron. The same axis system seen
 the other way up.
 
-![The 16 vertex-turning polyhedra](1_ray_sets/polyhedra/raysets_polyhedra_dual.png)
+![The 16 vertex-turning polyhedra](tutorial_5_polyhedra/raysets_polyhedra_dual.png)
 
 The interactive page lets you pick any ray-set, rotate its face-turning solid, and
 toggle to the dual live in the browser — the shell is cosmetic, what defines the puzzle
@@ -256,15 +283,22 @@ Also holds the explainers
 [`turning_systems.md`](tutorial_6_turning_systems/turning_systems.md)) and its own
 [README](tutorial_6_turning_systems/README.md).
 
-### [`tutorial_7_cut_depths/`](tutorial_7_cut_depths) — cut depths, computed and explored
+### [`tutorial_7_elementary_cut_depths/`](tutorial_7_elementary_cut_depths) — cut depths, exact
 
-Enumerates each axis system's cut-depth **regimes** — how the pieces change as the
-cut depth varies — and shows them three ways: a 3-D piece explorer
-(`radio-piece-explorer.html`), depth strips for the elementary systems
-(`regime-heatmap.html`), and 2-D depth maps for the compound systems
-(`compound-diagram.html`). Elementary systems are exact; compound systems are grid
-lower bounds. The prose notes on why the puzzle count turns infinite now live here too
-(`cut_depths.md`). See its [README](tutorial_7_cut_depths/README.md).
+Each axis system's cut-depth **regimes** — how the pieces change as the cut depth
+varies — for the **7 elementary** (single-orbit) systems, computed **exactly**
+(the analytical pair/triple-wall method). Two views: a 3-D piece explorer
+(`elementary-piece-explorer.html`) and depth strips
+(`elementary-regime-heatmap.html`). The prose notes on why the puzzle count turns
+infinite live here too (`cut_depths.md`). See its
+[README](tutorial_7_elementary_cut_depths/README.md).
+
+### [`tutorial_8_compound_cut_depths/`](tutorial_8_compound_cut_depths) — cut depths, compound
+
+The **compound** systems, where each orbit carries its own depth, as 2-D depth maps
+(`compound-gridsearch-heatmap.html`). Grid-sampled, so the regime count is a **lower
+bound** — the per-orbit depths reshape the arrangement and add walls the exact
+elementary method can't reach. See its [README](tutorial_8_compound_cut_depths/README.md).
 
 Nothing is hard-coded. The groups are closed from two rotations each, the families
 are found as orbits, and the 21 → 16 collapse is **proved** rather than asserted:

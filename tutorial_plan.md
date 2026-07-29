@@ -32,7 +32,7 @@ proof.
 
 **5. Ray-sets are polyhedra** — **[done]** (for now):
 `tutorial_5_polyhedra/ray-set-polyhedra.html`
-Interactive three.js port of the `1_ray_sets/polyhedra` matplotlib montages: pick any
+Interactive three.js port of the `polyhedra` matplotlib montages (retired to `old/`): pick any
 of the 16 ray-sets, see its face-turning solid (a face per ray, coloured by family)
 and toggle to the vertex-turning **dual**. Carries the "shell is cosmetic /
 Mastermorphix" note.
@@ -48,14 +48,12 @@ of the 6-family is visible. Click a ray to turn it by its own allowed step. Data
 
 ## The cut-depth explorer
 
-**7. Where you cut (regimes)** — **[done]** (for now), three views in
-`tutorial_7_cut_depths/`:
-- `radio-piece-explorer.html` — one system in 3-D; slide the cut depth, watch pieces
-  appear and vanish; Radiolarians.
-- `regime-heatmap.html` — all 7 elementary systems as depth strips; the surface lens,
+**7. Where you cut (regimes)** — **[done]** (for now), two views in
+`tutorial_7_elementary_cut_depths/` (the **7 elementary** systems, computed **exactly**):
+- `elementary-piece-explorer.html` — one system in 3-D; slide the cut depth, watch
+  pieces appear and vanish; Radiolarians.
+- `elementary-regime-heatmap.html` — all 7 systems as depth strips; the surface lens,
   with full-width regimes, zero-width regimes, and boundaries.
-- `compound-diagram.html` — the 7 two-orbit compound systems as 2-D depth maps (also
-  serves stop #8).
 *Teaches:* cut depth turns one axis system into many real puzzles — regimes and walls.
 *Note:* the deepest cut (`d=0`) is the degenerate end of these tools already. The old
 `great_circles` matplotlib view (cuts as circles on a sphere) was retired to `old/`;
@@ -63,10 +61,11 @@ that cuts-on-sphere visual could return here as an HTML view later if wanted.
 
 ## After — generalise, then the edges
 
-**8. Compound systems** — **[needs work]**
+**8. Compound systems** — **[needs work]**, in `tutorial_8_compound_cut_depths/`.
 Two or three orbits, each with its own depth; 2-D / 3-D regime maps. The 2-orbit
-cut-depth view exists (`tutorial_7_cut_depths/compound-diagram.html`); still to do is
-the narrative framing, the three-orbit systems, and switching it to the surface lens.
+cut-depth view exists (`compound-gridsearch-heatmap.html`, grid-sampled = a lower
+bound); still to do is the narrative framing, the three-orbit systems, and switching
+it to the surface lens.
 *Teaches:* combining families multiplies the space.
 
 **9. The body matters** — **[to build]**
@@ -79,9 +78,13 @@ corner-turning dodecahedron but have no face-turning-icosahedron form.
 Prisms and turntables; why they are infinite and excluded from the 16.
 *Teaches:* the boundary of the finite theorem — what "16" does and doesn't count.
 
-**11. The puzzle gallery** — **[to build]**
+**11. The puzzle gallery / "all possible puzzles"** — **[to build]**
 The 16 (plus notable extras) mapped to physical puzzles: Rubik's Cube, Megaminx,
-Skewb, Pyraminx, Helicopter, …
+Skewb, Pyraminx, Helicopter, … The finale frames this as *"here are all the twisty
+puzzles that can exist"* — under the fenced scope in README's "Scope, honestly":
+mechanism-not-exterior, polyhedral-only (no C_n/D_n), exactly one cut per ray, and
+**no jumbling / no bandaging**. "All puzzles" = every {ray-set × turning system ×
+one-cut depth regime}.
 *Teaches:* theory → the shelf. The payoff, and the closest thing to "all possible
 mechanisms."
 
@@ -107,27 +110,24 @@ three different fates:
    collapse with explicit orthogonal maps), `turning_systems.py`, `regime_core.py`,
    and the data generators. This is the repo's rigor and it produces
    `systems_data.js` / `surface_data.js` / `compound_data.js`. Treat Python as the
-   **backend** (proofs + data generation), HTML as the frontend. `lib/` now holds
-   `raysets.py` + `turning_systems.py`; the cut-depth backend hasn't moved yet, so
-   T/O/I construction is still **duplicated** between `lib/raysets.py` and
-   `tutorial_7_cut_depths/regime_core.py`.
+   **backend** (proofs + data generation), HTML as the frontend. `lib/` now holds the
+   whole backend; but `raysets.py` and `regime_core.py` still carry **separate** copies
+   of the T/O/I construction — unifying them is the one remaining de-dup.
 2. **Prose `.md` explainers — fold into HTML** as the stops that host them are built
    (`turning_systems.md`, `what_is_a_turning_system.md`, `cut_depths.md`, `klein.md`).
 3. **matplotlib viewers / montages — archive to `old/`** once an HTML stop supersedes
    each: `rayview` → done (stop #3), `polyhedra` → done (stop #5). These two are ready
    to retire now.
 
-**Done (2026-07-27):** `lib/` created — `raysets.py`, `turning_systems.py`,
-`gen_turning.py`. `2_turning_systems` and `3_cut_depths` removed; `1_ray_sets` reduced
-to the montage PNGs (kept as README assets). Prose moved to its stop
-(`what_is_a_turning_system.md` + `turning_systems.md` → `tutorial_6`, `cut_depths.md` →
-`tutorial_7`). matplotlib retired to `old/` (`rayview`, `preview`, `polyhedra`,
-`great_circles`).
+**Done (2026-07-27):** the whole Python backend now lives in `lib/` — `raysets.py`,
+`turning_systems.py`, `regime_core.py`, and every generator (`gen_turning`,
+`gen_systems`, `dump_all_surface`, `precompute_elementary`, `precompute_compound`,
+`jsonfmt`, `puzzle_names.json`); the generators write their `*_data.js` into the tutorial
+folders. `1_ray_sets`, `2_turning_systems`, `3_cut_depths` removed (montage PNGs → to
+`tutorial_3` / `tutorial_5`); prose moved to its stop. matplotlib retired to `old/`.
+The cut-depth stop was split: `tutorial_7_elementary_cut_depths/` (exact, 2 views) and
+`tutorial_8_compound_cut_depths/` (grid). HTML files renamed to elementary-/compound- .
 
-**Remaining (the backend de-dup pass):** the cut-depth backend (`regime_core.py` + the
-data generators `gen_systems.py`, `dump_all_surface.py`, `precompute_*.py`, `jsonfmt.py`)
-still lives in `tutorial_7_cut_depths/`, so the T/O/I construction stays **duplicated**
-between `lib/raysets.py` and `regime_core.py`. Folding those into `lib/` and unifying the
-group code is the next backend pass — deferred. Note: a pure move needs **no data
-regeneration** (it can't change generator output), so it won't cost the ~1 hr
-compound-grid recompute.
+**Remaining (one de-dup):** `raysets.py` and `regime_core.py` still build T/O/I
+separately — now co-located in `lib/`, so unifying them into one group module is a
+contained refactor whenever wanted.

@@ -84,7 +84,7 @@ const renderer = new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRat
 renderer.setSize(view.clientWidth, view.clientHeight); view.appendChild(renderer.domElement);
 const controls = new THREE.OrbitControls(cam, renderer.domElement); controls.enableDamping = true;
 
-// solid dark shaded ball, matching radio-piece-explorer's look
+// solid dark shaded ball, matching the elementary-piece-explorer's look
 scene.add(new THREE.AmbientLight(0xffffff, 0.55));
 const keyLight = new THREE.DirectionalLight(0xffffff, 0.85); keyLight.position.set(0.5, 0.85, 0.6); scene.add(keyLight);
 const refSphere = new THREE.Mesh(new THREE.SphereGeometry(1, 96, 48),
