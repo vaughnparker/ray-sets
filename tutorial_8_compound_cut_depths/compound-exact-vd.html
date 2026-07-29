@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Exact cut-regime chambers (compound systems)</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;padding:28px 34px 60px;}
+  h1{font-size:20px;margin:0 0 4px;}
+  .sub{font-size:13px;color:var(--muted);margin:0 0 18px;line-height:1.5;max-width:900px;}
+  .toggle{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
+  .toggle button{padding:8px 14px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;cursor:pointer;}
+  .toggle button.active{background:#1f6feb;border-color:#1f6feb;color:#fff;font-weight:600;}
+  #panels{display:flex;flex-wrap:wrap;gap:34px;}
+  .ptitle{font-size:15px;font-weight:700;margin-bottom:2px;}
+  .pmeta{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .win{color:#37d67a;font-weight:700;}
+  .plot{display:flex;align-items:stretch;gap:6px;}
+  .ylab{writing-mode:vertical-rl;transform:rotate(180deg);font-size:11px;color:var(--muted);text-align:center;align-self:center;white-space:nowrap;}
+  .gridwrap{display:flex;flex-direction:column;gap:5px;}
+  svg{border:1px solid #222a37;background:#0b0e14;display:block;}
+  svg polygon{stroke:#0b0e14;stroke-width:0.6;}
+  svg polygon:hover{stroke:#fff;stroke-width:1.4;}
+  .xlab{font-size:11px;color:var(--muted);text-align:center;}
+  .arrow{color:#5a6472;}
+  #tip{position:fixed;pointer-events:none;background:#0b0e14;border:1px solid #2a3342;border-radius:8px;padding:8px 11px;font-size:12px;line-height:1.5;opacity:0;transition:opacity .1s;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.5);}
+  .empty{color:var(--muted);font-size:14px;}
+  details.more{max-width:900px;margin:-8px 0 20px;font-size:13px;color:var(--muted);line-height:1.55;}
+  details.more summary{cursor:pointer;color:#8ab4ff;font-weight:600;}
+  details.more p{margin:8px 0;}
+  details.more b{color:var(--ink);}
+</style>
+</head>
+<body>
+  <h1>Exact cut-regime chambers — compound systems</h1>
+  <p class="sub">The 2-D depth square carved by the analytical <b>{pair, triple, quadruple}</b>
+  walls (vertical decomposition — no d<sub>A</sub> gridsearch). Each tile is a <b>chamber</b>,
+  bounded by the true wall curves and filled by its total piece count — smooth boundaries,
+  deterministic counts. There are many more chambers than <b>regimes</b> (distinct puzzles);
+  the count above each map is the regime count. Hover any chamber for its pieces.</p>
+  <details class="more">
+    <summary>Chambers vs. regimes — why there are more tiles than puzzles</summary>
+    <p>Think of this square as a <b>control panel</b>: x is how deep you cut the first orbit,
+    y how deep you cut the second. Every point is one specific puzzle. The <b>walls</b> are
+    the curves where a specific geometric event happens — e.g. <i>the crease between two
+    cut-planes becomes tangent to the sphere</i>. A <b>chamber</b> is one tile bounded by
+    those walls: a patch you can slide around in without crossing any wall.</p>
+    <p>Here's the subtlety: a wall event is always geometrically real, but it only changes
+    the actual <b>puzzle</b> if the feature it concerns is a live piece-boundary right there.
+    If that crease grazes the sphere in a spot already sliced away by other cuts, nothing is
+    created or destroyed — the wall fires in "dead space." So <b>every puzzle change happens
+    at a wall, but not every wall-crossing changes the puzzle</b>, and two neighbouring
+    chambers can be the exact same puzzle.</p>
+    <p>We enumerate <i>every</i> candidate wall (to guarantee no real change is missed), so
+    the square gets cut into far more chambers than there are distinct puzzles — e.g. 352
+    chambers but only 52 regimes for the cube's faces+corners.</p>
+  </details>
+  <div class="toggle">
+    <button id="mTotal" class="active">Colour by total count</button>
+    <button id="mType">Colour by piece type (max weight)</button>
+  </div>
+  <div id="panels"></div>
+  <div id="tip"></div>
+
+<script src="exact_vd_data.js"></script>
+<script>
+const TYPE_COLORS={1:[255,107,107],2:[76,201,240],3:[255,209,102],4:[102,217,142],5:[176,139,240],6:[255,159,67]};
+function tc(w){const c=TYPE_COLORS[w];if(c)return c;const g=Math.min(220,110+14*(w-6));return[g,g,g];}
+function csc(w){const c=tc(w);return `rgb(${c[0]},${c[1]},${c[2]})`;}
+const STOPS=[[13,20,40],[36,70,130],[41,182,246],[52,199,142],[255,209,102],[255,120,60]];
+function heat(t){t=Math.max(0,Math.min(1,t));const x=t*(STOPS.length-1),i=Math.floor(x),f=x-i;
+  const a=STOPS[i],b=STOPS[Math.min(i+1,STOPS.length-1)];
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;}
+
+const tip=document.getElementById('tip');
+function showTip(e,html){tip.innerHTML=html;tip.style.opacity=1;tip.style.left=(e.clientX+15)+'px';tip.style.top=(e.clientY+13)+'px';}
+function hideTip(){tip.style.opacity=0;}
+
+const S=430;                                   // svg px
+let mode='total';
+// (dA,dB) -> screen: left=shallow (dA=1), right=deep (dA=0); top=deep (dB=0), bottom=shallow
+const X=dA=>(1-dA)*S, Y=dB=>dB*S;
+
+function render(){
+  const cont=document.getElementById('panels'); cont.innerHTML='';
+  if(typeof EXACT_VD==='undefined' || !Object.keys(EXACT_VD).length){
+    cont.innerHTML='<div class="empty">No data yet — run <code>python exact_compound_vd.py &lt;name&gt; --poly</code> to write <code>exact_vd_data.js</code>.</div>';
+    return;
+  }
+  Object.keys(EXACT_VD).forEach(name=>{
+    const D=EXACT_VD[name], ch=D.chambers;
+    let tmin=Infinity,tmax=-Infinity; ch.forEach(c=>{tmin=Math.min(tmin,c.total);tmax=Math.max(tmax,c.total);});
+    const panel=document.createElement('div');
+    panel.innerHTML=`<div class="ptitle">${name}</div>`
+      +`<div class="pmeta">${D.rays[0]}+${D.rays[1]} rays · <span class="win">${D.count} exact</span> regimes`
+      +(D.grid_count!=null?` vs ${D.grid_count} grid`:'')+`</div>`;
+    const plot=document.createElement('div'); plot.className='plot';
+    const ylab=document.createElement('div'); ylab.className='ylab';
+    ylab.innerHTML=`${D.labels[1]} depth &nbsp;<span class="arrow">shallow ← → deep</span>`;
+    const gw=document.createElement('div'); gw.className='gridwrap';
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width',S); svg.setAttribute('height',S); svg.setAttribute('viewBox',`0 0 ${S} ${S}`);
+    ch.forEach(c=>{
+      const pts=c.poly.map(p=>`${X(p[0]).toFixed(1)},${Y(p[1]).toFixed(1)}`).join(' ');
+      const pol=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      pol.setAttribute('points',pts);
+      pol.setAttribute('fill', mode==='total' ? heat(tmax>tmin?(c.total-tmin)/(tmax-tmin):0.5) : csc(c.maxw));
+      pol.addEventListener('mousemove',e=>showTip(e,`<b>${c.total} pieces</b> · max weight ${c.maxw}`));
+      pol.addEventListener('mouseleave',hideTip);
+      svg.appendChild(pol);
+    });
+    const xlab=document.createElement('div'); xlab.className='xlab';
+    xlab.innerHTML=`${D.labels[0]} depth &nbsp;<span class="arrow">shallow ← → deep</span>`;
+    gw.appendChild(svg); gw.appendChild(xlab);
+    plot.appendChild(ylab); plot.appendChild(gw);
+    panel.appendChild(plot); cont.appendChild(panel);
+  });
+}
+function setBtn(){mTotal.classList.toggle('active',mode==='total');mType.classList.toggle('active',mode==='type');}
+mTotal.addEventListener('click',()=>{mode='total';setBtn();render();});
+mType.addEventListener('click',()=>{mode='type';setBtn();render();});
+setBtn(); render();
+</script>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Compound cut-depth explorer</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  #app{display:flex;height:100vh;overflow:hidden;}
+  #left{width:46%;min-width:360px;display:flex;flex-direction:column;border-right:1px solid #222a37;}
+  #view{flex:1;position:relative;}
+  #controls{padding:16px 20px;border-top:1px solid #222a37;}
+  #right{flex:1;padding:22px 26px;overflow-y:auto;}
+  h1{font-size:16px;margin:0 0 4px;}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 12px;line-height:1.5;}
+  label{font-size:12px;color:var(--muted);display:block;margin:2px 0 4px;}
+  select{width:100%;max-width:420px;padding:8px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;margin-bottom:6px;}
+  .togglerow{display:flex;gap:8px;margin-top:12px;max-width:420px;}
+  .togglerow button{flex:1;font-size:12px;padding:7px 4px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);cursor:pointer;}
+  .togglerow button.active{background:#1f6feb;border-color:#1f6feb;color:#fff;font-weight:600;}
+  .slrow{display:flex;align-items:center;gap:10px;margin:10px 0;}
+  .slrow .sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto;}
+  .slrow .nm{font-size:12px;color:var(--ink);flex:0 0 132px;}
+  .slrow input[type=range]{flex:1;}
+  .slrow .end{font-size:10px;color:var(--muted);}
+  .slrow .val{font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;width:52px;text-align:right;}
+  svg{border:1px solid #222a37;background:#0b0e14;display:block;}
+  svg polygon{stroke:none;}
+  svg polygon.hi{stroke:#fff;stroke-width:1.6;}
+  #dot{fill:#fff;stroke:#0b0e14;stroke-width:1.5;}
+  .ax{font-size:11px;color:var(--muted);}
+  .arrow{color:#5a6472;}
+  .readout{background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:12px;font-size:13px;margin-top:14px;max-width:620px;line-height:1.6;}
+  .histcols{display:flex;gap:22px;flex-wrap:wrap;}
+  .histcol{flex:1;min-width:240px;}
+  .big{font-size:20px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;}
+  .rid{font-size:13px;color:var(--ink);margin:1px 0 10px;font-weight:600;}
+  .hsec{font-size:12px;color:var(--muted);margin:12px 0 2px;}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;vertical-align:middle;margin-right:5px;}
+  .hrow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin:3px 0;}
+  .hlab{flex:0 0 116px;}
+  .hbarwrap{flex:1;background:#0b0e14;border-radius:3px;height:12px;overflow:hidden;}
+  .hbar{display:block;height:100%;border-radius:3px;min-width:2px;}
+  .hval{color:var(--ink);width:26px;text-align:right;font-variant-numeric:tabular-nums;font-weight:700;}
+  #tip{position:fixed;pointer-events:none;background:#0b0e14;border:1px solid #2a3342;border-radius:8px;padding:8px 11px;font-size:12px;opacity:0;transition:opacity .1s;z-index:10;box-shadow:0 6px 24px rgba(0,0,0,.5);}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="left">
+    <div id="view"></div>
+    <div id="controls">
+      <label>Axis system</label>
+      <select id="system"></select>
+      <div id="sliders"></div>
+      <div class="togglerow">
+        <button id="cWire" class="active">Cut circles</button>
+        <button id="cType">By piece type</button>
+        <button id="cSide">By side</button>
+      </div>
+      <p class="sub" style="margin:8px 0 0;">Each ring is where one cut plane meets the sphere;
+      slide to change each orbit's cut depth. The dot on the map tracks these depths.</p>
+    </div>
+  </div>
+  <div id="right">
+    <h1>Cut-depth map</h1>
+    <p class="sub">The depth square, merged into one area per <b>regime</b> (distinct puzzle).
+    Hover a region to highlight it; the white dot is your current cut depths.</p>
+    <div class="togglerow" style="max-width:none;margin:0 0 12px;">
+      <button id="mTotal" class="active">Colour by total count</button>
+      <button id="mType">Colour by piece type (max weight)</button>
+    </div>
+    <label style="display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin:0 0 10px;cursor:pointer;user-select:none;">
+      <input type="checkbox" id="markToggle" checked style="width:auto;"> Show clickable regime targets</label>
+    <div id="plot"></div>
+    <div class="readout">
+      <div class="rid" id="rid">— </div>
+      <div class="histcols">
+        <div class="histcol">
+          <div class="hsec" style="margin-top:0;">External (surface) pieces</div>
+          <div class="big" id="extTotal">—</div>
+          <div id="extBars"></div>
+        </div>
+        <div class="histcol">
+          <div class="hsec" style="margin-top:0;">Total pieces (incl. buried)</div>
+          <div class="big" id="allTotal">—</div>
+          <div id="allBars"></div>
+        </div>
+      </div>
+      <div id="rdepths" style="color:var(--muted);margin-top:12px;"></div>
+    </div>
+  </div>
+</div>
+<div id="tip"></div>
+
+<script src="exact_vd_data.js"></script>
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+<script>
+const PALETTE=[0x3b7dd8,0xe8833a,0x2ca58d];
+const css=h=>"#"+h.toString(16).padStart(6,"0");
+const STOPS=[[13,20,40],[36,70,130],[41,182,246],[52,199,142],[255,209,102],[255,120,60]];
+function heat(t){t=Math.max(0,Math.min(1,t));const x=t*(STOPS.length-1),i=Math.floor(x),f=x-i;
+  const a=STOPS[i],b=STOPS[Math.min(i+1,STOPS.length-1)];
+  return `rgb(${Math.round(a[0]+(b[0]-a[0])*f)},${Math.round(a[1]+(b[1]-a[1])*f)},${Math.round(a[2]+(b[2]-a[2])*f)})`;}
+const TYPE_COLORS={1:[255,107,107],2:[76,201,240],3:[255,209,102],4:[102,217,142],5:[176,139,240],6:[255,159,67]};
+function csc(w){const c=TYPE_COLORS[w]||[176,176,176];return `rgb(${c[0]},${c[1]},${c[2]})`;}
+function tname(w){return {1:"singly-gripped (w1)",2:"doubly (w2)",3:"triply (w3)"}[w]||("weight "+w);}
+
+// ---- three.js sphere ----
+const view=document.getElementById('view');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0b0e14);
+const cam=new THREE.PerspectiveCamera(45, 1, 0.01, 100); cam.position.set(2.4,1.7,2.4);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(devicePixelRatio);
+view.appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(cam, renderer.domElement); controls.enableDamping=true;
+scene.add(new THREE.AmbientLight(0xffffff,0.6));
+const key=new THREE.DirectionalLight(0xffffff,0.7); key.position.set(0.6,0.9,0.6); scene.add(key);
+const plainSphere=new THREE.Mesh(new THREE.SphereGeometry(1,96,48),
+  new THREE.MeshStandardMaterial({color:0x232a36, roughness:1.0, transparent:true, opacity:0.45}));
+scene.add(plainSphere);
+const rings=new THREE.Group(); scene.add(rings);
+
+// shader sphere: colours the actual pieces (by weight, or by nearest side) at the current per-orbit depths
+const MAXR=64;
+const uniforms={
+  rays:{value:Array.from({length:MAXR},()=>new THREE.Vector3(0,0,0))},
+  rdepth:{value:new Float32Array(MAXR)},
+  nRays:{value:6}, lineW:{value:0.012}, mode:{value:0}, maxW:{value:10},
+};
+const vert=`varying vec3 vPos; void main(){ vPos=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }`;
+const frag=`
+precision highp float;
+varying vec3 vPos;
+uniform vec3 rays[${MAXR}];
+uniform float rdepth[${MAXR}];
+uniform int nRays; uniform float lineW; uniform int mode; uniform int maxW;
+vec3 typeColor(int w){
+  if(w==0) return vec3(0.16,0.18,0.22);
+  if(w==1) return vec3(1.0,0.42,0.42);
+  if(w==2) return vec3(0.30,0.79,0.94);
+  if(w==3) return vec3(1.0,0.82,0.40);
+  if(w==4) return vec3(0.40,0.85,0.56);
+  if(w==5) return vec3(0.69,0.55,0.94);
+  if(w==6) return vec3(1.0,0.62,0.26);
+  float g=0.72+float(w-7)/max(1.0,float(maxW-7))*0.23; return vec3(min(0.95,g));
+}
+vec3 hsv2rgb(vec3 c){vec4 K=vec4(1.,2./3.,1./3.,3.);vec3 p=abs(fract(c.xxx+K.xyz)*6.-K.www);return c.z*mix(K.xxx,clamp(p-K.xxx,0.,1.),c.y);}
+void main(){
+  vec3 p=normalize(vPos);
+  int w=0; float mind=10.0; int best=0; float bestv=-2.0;
+  for(int i=0;i<${MAXR};i++){
+    if(i>=nRays) break;
+    float dp=dot(p,rays[i]);
+    mind=min(mind, abs(acos(clamp(dp,-1.0,1.0)) - acos(clamp(rdepth[i],-1.0,1.0))));
+    if(dp>bestv){bestv=dp;best=i;}
+    if(dp>rdepth[i]) w++;
+  }
+  vec3 base = (mode==0)? typeColor(w) : hsv2rgb(vec3(fract(float(best)*0.61803),0.70,0.95));
+  vec3 L=normalize(vec3(0.5,0.85,0.6));
+  base *= 0.55+0.45*max(0.0,dot(p,L));
+  float line=smoothstep(lineW,lineW*0.4,mind);
+  base=mix(base, vec3(0.02,0.02,0.03), line);
+  gl_FragColor=vec4(base,1.0);
+}`;
+const shaderMat=new THREE.ShaderMaterial({uniforms,vertexShader:vert,fragmentShader:frag});
+const shaderSphere=new THREE.Mesh(new THREE.SphereGeometry(1,320,160),shaderMat);
+shaderSphere.visible=false; scene.add(shaderSphere);
+let colorMode='wire';               // 'wire' (cut circles), 'type' (by weight), 'side' (by nearest ray)
+
+function resize(){const w=view.clientWidth,h=view.clientHeight; renderer.setSize(w,h); cam.aspect=w/h; cam.updateProjectionMatrix();}
+function cutCircle(u,d,colHex){
+  const r=Math.sqrt(Math.max(0,1-d*d)), c=u.clone().multiplyScalar(d);
+  let e1=new THREE.Vector3().crossVectors(u,new THREE.Vector3(0,0,1));
+  if(e1.length()<0.1) e1.crossVectors(u,new THREE.Vector3(0,1,0));
+  e1.normalize(); const e2=new THREE.Vector3().crossVectors(u,e1).normalize(), pts=[];
+  for(let i=0;i<=72;i++){const t=i/72*2*Math.PI; pts.push(c.clone().addScaledVector(e1,r*Math.cos(t)).addScaledVector(e2,r*Math.sin(t)));}
+  return new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({color:colHex}));
+}
+
+// ---- state ----
+let S, depths=[0.5,0.5], rayV=[];
+const plot=document.getElementById('plot'), tip=document.getElementById('tip');
+const SZ=440, X=dA=>(1-dA)*SZ, Y=dB=>dB*SZ;
+let cv, ctx, cidBuf, regRGB, curHi=-1, dotCid=-1, markers=[], maxW=1, markersOn=true, mapMode='total';
+
+function updateRings(){
+  while(rings.children.length){const c=rings.children.pop(); c.geometry.dispose();}
+  rayV.forEach((u,i)=>rings.add(cutCircle(u, depths[S.orb[i]], PALETTE[S.orb[i]%3])));
+  updateShader();
+}
+
+function updateShader(){                        // feed each ray its orbit's depth into the piece shader
+  const n=rayV.length;
+  for(let i=0;i<MAXR;i++){
+    if(i<n){ uniforms.rays.value[i].copy(rayV[i]); uniforms.rdepth.value[i]=depths[S.orb[i]]; }
+    else   { uniforms.rays.value[i].set(0,0,0);   uniforms.rdepth.value[i]=2.0; }
+  }
+  uniforms.nRays.value=n; uniforms.maxW.value=Math.max(2,maxW);
+}
+
+function setColorMode(m){
+  colorMode=m;
+  [['cWire','wire'],['cType','type'],['cSide','side']].forEach(([id,mm])=>
+    document.getElementById(id).classList.toggle('active',colorMode===mm));
+  const wire=(m==='wire');
+  plainSphere.visible=wire; rings.visible=wire;
+  shaderSphere.visible=!wire;
+  if(!wire){ uniforms.mode.value=(m==='type')?0:2; updateShader(); }
+}
+
+// vertical span of a chamber polygon along the screen line x=const
+function yRangeAtX(pts,x){
+  let lo=Infinity,hi=-Infinity,f=false;
+  for(let i=0,n=pts.length;i<n;i++){const a=pts[i],b=pts[(i+1)%n];
+    if((a[0]<=x)!==(b[0]<=x)){const t=(x-a[0])/(b[0]-a[0]),y=a[1]+t*(b[1]-a[1]); lo=Math.min(lo,y);hi=Math.max(hi,y);f=true;}}
+  return f?[lo,hi]:null;
+}
+
+// rasterise: fill every pixel column from the chambers (gapless), then mark regime boundaries
+function tcArr(w){return TYPE_COLORS[w]||[176,176,176];}      // per-weight rgb array (matches csc)
+function computeRegRGB(){                                     // one colour per regime, per current map mode
+  const ts=S.regimes.map(r=>r.total),tmin=Math.min(...ts),tmax=Math.max(...ts);
+  regRGB=S.regimes.map(r=> mapMode==='type'
+    ? tcArr(r.maxw)
+    : heat(tmax>tmin?(r.total-tmin)/(tmax-tmin):0.5).match(/\d+/g).map(Number));
+}
+function buildRaster(){
+  computeRegRGB();
+  cidBuf=new Int16Array(SZ*SZ).fill(-1);
+  S.chambers.forEach(c=>{
+    const pts=c.poly.map(p=>[X(p[0]),Y(p[1])]);
+    let xmn=Infinity,xmx=-Infinity; pts.forEach(p=>{xmn=Math.min(xmn,p[0]);xmx=Math.max(xmx,p[0]);});
+    for(let x=Math.max(0,Math.floor(xmn));x<=Math.min(SZ-1,Math.ceil(xmx));x++){
+      const r=yRangeAtX(pts,x+0.5); if(!r)continue;
+      for(let y=Math.max(0,Math.round(r[0]));y<=Math.min(SZ-1,Math.round(r[1]));y++) cidBuf[y*SZ+x]=c.cid;
+    }
+  });
+  computeMarkers();
+}
+
+// largest inscribed circle per regime, via a distance transform (distance to the regime's edge)
+function computeMarkers(){
+  const dist=new Float32Array(SZ*SZ);
+  for(let y=0;y<SZ;y++)for(let x=0;x<SZ;x++){const i=y*SZ+x,c=cidBuf[i];
+    let seed = c<0 || x===0||y===0||x===SZ-1||y===SZ-1;
+    if(!seed && ((cidBuf[i-1]!==c)||(cidBuf[i+1]!==c)||(cidBuf[i-SZ]!==c)||(cidBuf[i+SZ]!==c))) seed=true;
+    dist[i]=seed?0:1e9;
+  }
+  const D2=1.41421356;
+  for(let y=0;y<SZ;y++)for(let x=0;x<SZ;x++){const i=y*SZ+x; let d=dist[i]; if(!d)continue;
+    if(x>0)d=Math.min(d,dist[i-1]+1); if(y>0)d=Math.min(d,dist[i-SZ]+1);
+    if(x>0&&y>0)d=Math.min(d,dist[i-SZ-1]+D2); if(x<SZ-1&&y>0)d=Math.min(d,dist[i-SZ+1]+D2); dist[i]=d;}
+  for(let y=SZ-1;y>=0;y--)for(let x=SZ-1;x>=0;x--){const i=y*SZ+x; let d=dist[i];
+    if(x<SZ-1)d=Math.min(d,dist[i+1]+1); if(y<SZ-1)d=Math.min(d,dist[i+SZ]+1);
+    if(x<SZ-1&&y<SZ-1)d=Math.min(d,dist[i+SZ+1]+D2); if(x>0&&y<SZ-1)d=Math.min(d,dist[i+SZ-1]+D2); dist[i]=d;}
+  const best={};
+  for(let y=0;y<SZ;y++)for(let x=0;x<SZ;x++){const i=y*SZ+x,c=cidBuf[i]; if(c<0)continue;
+    if(!best[c]||dist[i]>best[c].d) best[c]={d:dist[i],x,y};}
+  markers=[];                                                    // one per regime; ring scaled to fit (min 3px)
+  for(const c in best){ markers.push({cid:+c, x:best[c].x, y:best[c].y, rr:Math.max(3,Math.min(best[c].d-1,9))}); }
+}
+
+function renderMap(){
+  const img=ctx.createImageData(SZ,SZ),d=img.data;
+  for(let i=0;i<SZ*SZ;i++){const cid=cidBuf[i]; let R=11,G=14,B=20;
+    if(cid>=0){const c=regRGB[cid]; R=c[0];G=c[1];B=c[2];
+      if(cid===curHi){R+=(255-R)*0.5;G+=(255-G)*0.5;B+=(255-B)*0.5;}}
+    const j=i<<2; d[j]=R;d[j+1]=G;d[j+2]=B;d[j+3]=255;}
+  ctx.putImageData(img,0,0);
+  // smooth vector regime boundaries
+  ctx.strokeStyle='#0b0e14'; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.lineCap='round';
+  (S.boundaries||[]).forEach(pl=>{ctx.beginPath();
+    pl.forEach((p,i)=>{const sx=X(p[0]),sy=Y(p[1]); i?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy);}); ctx.stroke();});
+  // regime navigation bullseyes (centre of each regime's largest inscribed circle)
+  if(markersOn) markers.forEach(m=>{const dr=Math.max(1.3,Math.min(m.rr*0.34,2.6));
+    ctx.beginPath();ctx.arc(m.x,m.y,m.rr,0,7);ctx.strokeStyle='rgba(255,255,255,0.92)';ctx.lineWidth=Math.max(1.4,Math.min(m.rr*0.32,2.6));ctx.stroke();
+    ctx.beginPath();ctx.arc(m.x,m.y,dr,0,7);ctx.fillStyle='#fff';ctx.fill();
+  });
+  ctx.beginPath();ctx.arc(X(depths[0]),Y(depths[1]),5,0,7);ctx.fillStyle='#37d67a';ctx.fill();
+  ctx.lineWidth=1.6;ctx.strokeStyle='#0b0e14';ctx.stroke();
+}
+
+function renderBars(barsId, totId, hist, mxW){                   // one bar per weight 1..mxW; empty ones dimmed
+  const el=document.getElementById(barsId), te=document.getElementById(totId);
+  if(!hist){ te.textContent='—'; el.innerHTML=''; return; }
+  let tot=0, mx=1; for(let w=1;w<=mxW;w++){const c=+hist[w]||0; tot+=c; mx=Math.max(mx,c);}
+  te.textContent=tot;
+  let html='';
+  for(let w=1;w<=mxW;w++){const cnt=+hist[w]||0;
+    html+=`<div class="hrow"><span class="hlab">${tname(w)}</span>`
+      +`<span class="hbarwrap"><span class="hbar" style="width:${Math.round(cnt/mx*100)}%;background:${csc(w)};opacity:${cnt?1:0.28}"></span></span>`
+      +`<b class="hval" style="opacity:${cnt?1:0.4}">${cnt}</b></div>`;}
+  el.innerHTML=html;
+}
+function showRegime(cid){                                        // fill the readout for a regime
+  const r=cid>=0?S.regimes[cid]:null;
+  document.getElementById('rid').textContent = r?`regime #${cid} · ${r.total} pieces total`:'—';
+  renderBars('extBars','extTotal', r?r.ext_hist:null, maxW);
+  renderBars('allBars','allTotal', r?r.hist:null, maxW);
+}
+function updateDot(){
+  const dA=depths[0],dB=depths[1];
+  const px=Math.max(0,Math.min(SZ-1,Math.round(X(dA)))),py=Math.max(0,Math.min(SZ-1,Math.round(Y(dB))));
+  dotCid = cidBuf ? cidBuf[py*SZ+px] : -1;
+  document.getElementById('rdepths').innerHTML =
+    `${S.labels[0]} depth <b style="color:#e6e9ef">${dA.toFixed(3)}</b> · ${S.labels[1]} depth <b style="color:#e6e9ef">${dB.toFixed(3)}</b>`;
+  showRegime(dotCid); curHi=dotCid; renderMap();
+}
+
+function buildPlot(){
+  buildRaster();
+  plot.innerHTML='';
+  cv=document.createElement('canvas'); cv.width=SZ; cv.height=SZ;
+  cv.style.border='1px solid #222a37'; cv.style.display='block';
+  ctx=cv.getContext('2d');
+  cv.addEventListener('mousemove',e=>{const b=cv.getBoundingClientRect();
+    const x=Math.round((e.clientX-b.left)*SZ/b.width),y=Math.round((e.clientY-b.top)*SZ/b.height);
+    if(x<0||x>=SZ||y<0||y>=SZ)return;
+    cv.style.cursor = (markersOn && markers.some(m=>{const hr=m.rr+5;return (x-m.x)**2+(y-m.y)**2<hr*hr;}))?'pointer':'default';
+    const cid=cidBuf[y*SZ+x];
+    if(cid>=0){curHi=cid;renderMap();showRegime(cid);}});
+  cv.addEventListener('mouseleave',()=>{curHi=dotCid;renderMap();showRegime(dotCid);});
+  cv.addEventListener('click',e=>{ if(!markersOn) return; const b=cv.getBoundingClientRect();
+    const x=(e.clientX-b.left)*SZ/b.width, y=(e.clientY-b.top)*SZ/b.height;
+    let hit=null,bd=1e9; for(const m of markers){const hr=m.rr+5,d2=(x-m.x)**2+(y-m.y)**2; if(d2<hr*hr&&d2<bd){bd=d2;hit=m;}}
+    if(hit){ depths=[1-hit.x/SZ, hit.y/SZ]; syncSliders(); updateRings(); updateDot(); }});
+  plot.appendChild(cv);
+  const ax=document.createElement('div'); ax.className='ax'; ax.style.marginTop='4px';
+  ax.innerHTML=`x: ${S.labels[0]} · y: ${S.labels[1]} &nbsp;<span class="arrow">(shallow ← → deep on both)</span>`;
+  plot.appendChild(ax);
+  renderMap();
+}
+
+function buildSliders(){
+  const box=document.getElementById('sliders'); box.innerHTML='';
+  S.labels.forEach((lab,o)=>{
+    const row=document.createElement('div'); row.className='slrow';
+    // slider position runs left->right; depth d = 1 - position, so left = shallow (large d), right = deep
+    row.innerHTML=`<span class="sw" style="background:${css(PALETTE[o%3])}"></span>`
+      +`<span class="nm">${lab}</span>`
+      +`<span class="end">shallow</span>`
+      +`<input type="range" min="0.02" max="1.00" step="0.005" value="${(1-depths[o]).toFixed(3)}" data-o="${o}">`
+      +`<span class="end">deep</span>`
+      +`<span class="val">${depths[o].toFixed(3)}</span>`;
+    const inp=row.querySelector('input'), val=row.querySelector('.val');
+    inp.addEventListener('input',()=>{depths[o]=1-parseFloat(inp.value); val.textContent=depths[o].toFixed(3); updateRings(); updateDot();});
+    box.appendChild(row);
+  });
+}
+
+function syncSliders(){                                          // reflect depths[] back into the sliders
+  document.querySelectorAll('#sliders input[type=range]').forEach(inp=>{
+    const o=+inp.dataset.o; inp.value=(1-depths[o]).toFixed(3);
+    const val=inp.parentElement.querySelector('.val'); if(val) val.textContent=depths[o].toFixed(3);
+  });
+}
+
+function load(name){
+  S=EXACT_VD[name];
+  if(!S.ray_xyz || !S.regimes || !S.chambers || S.chambers[0].cid==null){
+    document.getElementById('plot').innerHTML=
+      '<p class="sub" style="color:#ff9f43">This <code>exact_vd_data.js</code> is an older format. '
+      +'Re-run <code>python exact_compound_vd.py --poly</code> to regenerate it (it now includes ray '
+      +'vectors and regime ids), then reload this page.</p>';
+    return;
+  }
+  maxW = Math.max(1, ...S.regimes.map(r=>r.maxw||1));
+  rayV=S.ray_xyz.map(v=>new THREE.Vector3(v[0],v[1],v[2]).normalize());
+  depths=[0.5,0.5];
+  buildSliders(); buildPlot(); updateRings(); resize(); updateDot();
+}
+
+// ---- init ----
+const sel=document.getElementById('system');
+if(typeof EXACT_VD==='undefined' || !Object.keys(EXACT_VD).length){
+  document.getElementById('right').innerHTML='<p class="sub">No data — run <code>python exact_compound_vd.py --poly</code>.</p>';
+} else {
+  Object.keys(EXACT_VD).forEach(n=>{const o=document.createElement('option'); o.value=n; o.textContent=n; sel.appendChild(o);});
+  sel.addEventListener('change',()=>load(sel.value));
+  load(sel.value);
+}
+document.getElementById('markToggle').addEventListener('change',e=>{markersOn=e.target.checked; if(ctx)renderMap();});
+function setMapMode(m){
+  mapMode=m;
+  document.getElementById('mTotal').classList.toggle('active',m==='total');
+  document.getElementById('mType').classList.toggle('active',m==='type');
+  if(S){ computeRegRGB(); renderMap(); }
+}
+document.getElementById('mTotal').addEventListener('click',()=>setMapMode('total'));
+document.getElementById('mType').addEventListener('click',()=>setMapMode('type'));
+document.getElementById('cWire').addEventListener('click',()=>setColorMode('wire'));
+document.getElementById('cType').addEventListener('click',()=>setColorMode('type'));
+document.getElementById('cSide').addEventListener('click',()=>setColorMode('side'));
+window.addEventListener('resize', resize);
+resize();                                   // size the sphere immediately, before any load
+(function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,cam); })();
+</script>
+</body>
+</html>
