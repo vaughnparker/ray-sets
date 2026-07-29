@@ -12,3 +12,4 @@ __pycache__/
 # Editor / tooling settings
 .vscode/
 .claude/
+lib/*.out
