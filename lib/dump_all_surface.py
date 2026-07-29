@@ -133,7 +133,7 @@ def compute_system(name, U, G):
             "walls": [round(c, 6) for c in crit], "entries": entries}
 
 if __name__ == "__main__":
-    out = os.path.join(_HERE, "surface_data.js")
+    out = os.path.join(os.path.dirname(_HERE), "tutorial_7_elementary_cut_depths", "surface_data.js")
     existing = {"order": [], "systems": {}}
     systems = {}; order = []
     for name, U, G in rc.elementary_systems():

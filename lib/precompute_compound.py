@@ -31,7 +31,7 @@ So the exact compound method = {pair, triple, quadruple} walls + incremental
 counting + chamber enumeration.  That is a real project; the grid is the honest
 stand-in until it exists.
 
-Output schema (compound_data.js), consumed by compound-diagram.html:
+Output schema (compound_data.js), consumed by compound-gridsearch-heatmap.html:
     const COMPOUND = { "<system>": {
         rays:[nA,nB(,nC)], labels:[...], N, depths:[...], method:"grid",
         regimes:[{total,hist,maxw},...], count,
@@ -44,7 +44,8 @@ import numpy as np, json, os, sys, time, itertools
 import regime_core as rc
 from jsonfmt import jdump
 
-OUT = "compound_data.js"
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                   "..", "tutorial_8_compound_cut_depths", "compound_data.js")
 FORCE = "--force" in sys.argv
 ONLY_2D = "--dims=2" in sys.argv        # skip the two 3-orbit systems
 

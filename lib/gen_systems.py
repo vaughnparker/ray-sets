@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Emit all 16 axis systems, each as a list of orbits {label, rays}, to systems_data.js."""
-import numpy as np, json
+import numpy as np, json, os
 from jsonfmt import jdump
+
+# written into the elementary cut-depth viewer folder (one level up from lib/)
+_OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                    "tutorial_7_elementary_cut_depths", "systems_data.js")
 PHI=(1+5**0.5)/2
 def Rmat(a,ang):
     a=np.array(a,float);a/=np.linalg.norm(a)
@@ -88,6 +92,6 @@ SYSTEMS={
 }
 for k,v in SYSTEMS.items():
     print(k, "->", [o["label"] for o in v], "=", sum(len(o["rays"]) for o in v),"rays")
-with open("systems_data.js","w",encoding="utf-8") as f:
+with open(_OUT,"w",encoding="utf-8") as f:
     f.write("const SYSTEMS = "+jdump(SYSTEMS)+";\n")
-print("wrote systems_data.js")
+print("wrote", _OUT)

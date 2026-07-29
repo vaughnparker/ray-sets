@@ -3,7 +3,7 @@
 For each of the 16 ray-sets, writes its rays (with family index) and every valid
 turning system on it — a per-ray turn order `nu`, the generated group order |G|, and
 a name for the famous ones. The enumeration is `turning_systems.systems_on`; this file
-only packages its output for the browser.  Names match tutorial_7_cut_depths/systems_data.js.
+only packages its output for the browser.  Names match tutorial_7_elementary_cut_depths/systems_data.js.
 
     python gen_turning.py        # -> turning_data.js
 """
