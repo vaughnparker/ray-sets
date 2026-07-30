@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Ray-Sets — how many twisty puzzles could exist?</title>
+<!-- Lightweight starter landing page. Explorers use relative links (work locally + on Pages);
+     prose links point at the GitHub-rendered markdown. Improve later. -->
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;--line:#222a37;--accent:#1f6feb;}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.6;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  .wrap{max-width:900px;margin:0 auto;padding:56px 24px 80px;}
+  header{margin-bottom:40px;}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:-0.01em;}
+  .tag{font-size:16px;color:var(--accent);font-weight:600;margin:0 0 16px;}
+  .lede{font-size:15px;color:var(--muted);max-width:680px;margin:0;}
+  .lede b{color:var(--ink);}
+  section{margin:38px 0 0;}
+  .kicker{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 2px;}
+  h2{font-size:19px;margin:0 0 4px;}
+  .blurb{font-size:14px;color:var(--muted);margin:0 0 14px;max-width:680px;}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+  a.card{display:block;text-decoration:none;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:14px 16px;color:var(--ink);transition:border-color .12s,transform .12s;}
+  a.card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  a.card .t{font-size:14px;font-weight:700;}
+  a.card .d{font-size:12px;color:var(--muted);margin-top:3px;}
+  a.card .t::after{content:" →";color:var(--accent);font-weight:400;}
+  .reading{font-size:13px;color:var(--muted);margin-top:12px;}
+  .reading a{color:#8ab4ff;text-decoration:none;}
+  .reading a:hover{text-decoration:underline;}
+  footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);}
+  footer a{color:#8ab4ff;text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Ray-Sets</h1>
+    <p class="tag">How many twisty puzzles could exist?</p>
+    <p class="lede">You can build an <b>N×N×N</b> cube for any N, so in one sense the answer is
+      "infinitely many." But they all share the same <b>canonical form</b>. Strip a puzzle down
+      to its mechanism and a surprising amount becomes <b>finite</b> — and countable. This is an
+      interactive tour of that classification, from the axes of rotation down to the individual pieces.</p>
+  </header>
+
+  <section>
+    <p class="kicker">Part 1</p>
+    <h2>How many ray-sets are there?</h2>
+    <p class="blurb">Which directions can the axes of rotation point? Infinitely many arrangements
+      exist — but only <b>16</b> have full polyhedral symmetry (7 elementary + 9 compound).</p>
+    <div class="cards">
+      <a class="card" href="tutorial_3_ray_sets/ray-set-explorer.html">
+        <div class="t">Ray-set explorer</div><div class="d">Rotate the axis systems in 3D</div></a>
+      <a class="card" href="tutorial_5_polyhedra/ray-set-polyhedra.html">
+        <div class="t">Ray-sets as polyhedra</div><div class="d">See each ray-set as a solid</div></a>
+      <a class="card" href="tutorial_6_turning_systems/ray-set-turning.html">
+        <div class="t">Turning systems</div><div class="d">Which turn orders each axis allows</div></a>
+    </div>
+    <p class="reading">Read: <a href="https://github.com/vaughnparker/ray-sets/blob/main/klein.md">klein.md</a>
+      — the proof that only finitely many rotation groups exist.</p>
+  </section>
+
+  <section>
+    <p class="kicker">Part 2 · elementary</p>
+    <h2>How many regimes can a ray-set have?</h2>
+    <p class="blurb">Give each axis a single cut. The depth is a free continuous parameter, so there
+      are infinitely many depths — but they collapse into <b>finitely many regimes</b> (distinct puzzles).</p>
+    <div class="cards">
+      <a class="card" href="tutorial_7_elementary_cut_depths/elementary-explorer.html">
+        <div class="t">Elementary explorer</div><div class="d">Sphere + depth strip, side by side</div></a>
+      <a class="card" href="tutorial_7_elementary_cut_depths/elementary-piece-explorer.html">
+        <div class="t">Piece explorer</div><div class="d">Colour pieces by type or side</div></a>
+      <a class="card" href="tutorial_7_elementary_cut_depths/elementary-regime-heatmap.html">
+        <div class="t">Regime strips</div><div class="d">Every system's regimes at a glance</div></a>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">Part 2 · compound</p>
+    <h2>Compound ray-sets: two orbits, two depths</h2>
+    <p class="blurb">When a ray-set has two orbits, each gets its own cut depth — a 2-D depth square,
+      with many more regimes to map.</p>
+    <div class="cards">
+      <a class="card" href="tutorial_8_compound_cut_depths/compound-explorer.html">
+        <div class="t">Compound explorer</div><div class="d">Sphere + 2-D regime map</div></a>
+      <a class="card" href="tutorial_8_compound_cut_depths/compound-exact-vd.html">
+        <div class="t">Chamber diagram</div><div class="d">The exact wall arrangement</div></a>
+      <a class="card" href="tutorial_8_compound_cut_depths/compound-gridsearch-heatmap.html">
+        <div class="t">Grid-search heatmap</div><div class="d">Regime counts by sampling</div></a>
+    </div>
+  </section>
+
+  <footer>
+    <a href="https://github.com/vaughnparker/ray-sets">Source on GitHub</a> ·
+    <a href="https://github.com/vaughnparker/ray-sets/blob/main/README.md">README</a> ·
+    <a href="https://github.com/vaughnparker/ray-sets/blob/main/resources.md">Other resources</a>
+  </footer>
+</div>
+</body>
+</html>

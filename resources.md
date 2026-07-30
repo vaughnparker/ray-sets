@@ -39,7 +39,9 @@ External references on twisty puzzles and their axis systems.
   - Switchable between tetrahedral, octahedral, icosahedral and other symmetries; demonstrates puzzles from the 2×2×2 up to the Megaminx, Dogic, Alexander's Star, and Impossiball.
   - Shareable URLs encode a chosen configuration.
 
-- **[LudoMiloOrb cut-depth explorer](https://ludocrypt.github.io/LudoMiloOrb/)** — by ludocrypt.
+- **[Orb](https://milojacquet.com/twisty/orb)** — by Milo Jacquet, with the
+  **[LudoMiloOrb fork](https://ludocrypt.github.io/LudoMiloOrb/)** by LudoCrypt adding
+  quality-of-life features (hence the combined name).
   An interactive sphere-with-cut-planes explorer, the same core idea as this repository's
   [`tutorial_7_elementary_cut_depths`](tutorial_7_elementary_cut_depths) — vary the cut depth and
   watch the piece configuration change.
