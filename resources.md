@@ -39,6 +39,11 @@ External references on twisty puzzles and their axis systems.
   - Switchable between tetrahedral, octahedral, icosahedral and other symmetries; demonstrates puzzles from the 2×2×2 up to the Megaminx, Dogic, Alexander's Star, and Impossiball.
   - Shareable URLs encode a chosen configuration.
 
+- **[LudoMiloOrb cut-depth explorer](https://ludocrypt.github.io/LudoMiloOrb/)** — by ludocrypt.
+  An interactive sphere-with-cut-planes explorer, the same core idea as this repository's
+  [`tutorial_7_elementary_cut_depths`](tutorial_7_elementary_cut_depths) — vary the cut depth and
+  watch the piece configuration change.
+
 - **[Group Theory for Puzzles](https://www.jaapsch.net/puzzles/groups.htm)** — by Jaap Scherphuis.
   A full group-theory course aimed at puzzles, whose classification proof closely parallels this repository's [`klein.md`](klein.md).
   - Its Theorem 6.6 classifies the finite 3-D rotation groups (cyclic, dihedral, tetrahedral, octahedral, icosahedral) by **pole counting**, exactly the argument in `klein.md`.

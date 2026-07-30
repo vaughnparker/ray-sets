@@ -63,9 +63,10 @@
   <div id="right">
     <h1>Cut-depth strip</h1>
     <p class="sub">The single depth axis, one band per <b>regime</b> (distinct puzzle) —
-      <b>left = shallow</b> (simplest), <b>right = deep</b> (most complex). Thin outlined ticks
-      are <b>zero-width regimes</b> (distinct puzzles at one exact depth). Hover a band to
-      inspect it; the green marker is your current cut depth.</p>
+      <b>left = shallow</b> (simplest), <b>right = deep</b> (most complex). Thin ticks with a
+      <b>diamond</b> are <b>zero-width regimes</b> (distinct puzzles at one exact depth) — click one
+      to snap precisely onto it. Hover any band or tick to inspect it; the green marker is your
+      current cut depth.</p>
     <div class="togglerow" style="max-width:none;margin:0 0 12px;">
       <button id="mCount" class="active">Colour by surface count</button>
       <button id="mType">Colour by piece type (max weight)</button>
@@ -182,8 +183,9 @@ function cutCircle(u,dd,colHex){
 
 // ---- state ----
 let name, rayV=[], surf, regimes=[], zws=[], regRGB=[], maxW=1, d=0.5;
-let curHi=-1, markersOn=true, mapMode='count';
-const SZ=440, MH=70, X=dd=>(1-dd)*SZ;               // d=1 shallow (left), d=0 deep (right)
+let curHi=-1, curZWd=null, markersOn=true, mapMode='count';
+const SZ=440, MH=70, X=dd=>(1-dd)*SZ, ZWHIT=7;      // d=1 shallow (left), d=0 deep (right)
+function zwAt(x){ let z=null,bd=ZWHIT; for(const zz of zws){const px=Math.abs(X(zz.d)-x); if(px<bd){bd=px;z=zz;}} return z; }
 const plot=document.getElementById('plot');
 let cv, ctx;
 
@@ -251,10 +253,15 @@ function renderMap(){
   // regime boundaries (interior only)
   ctx.strokeStyle='#0b0e14'; ctx.lineWidth=2; ctx.lineCap='round';
   regimes.forEach(r=>{ if(r.d_lo>1e-6){const x=X(r.d_lo); ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,MH);ctx.stroke();}});
-  // zero-width regimes: thin outlined ticks
-  zws.forEach(z=>{const x=X(z.d); const c=tcArr(z.mw);
+  // zero-width regimes: thin outlined ticks with a diamond target (distinct from band bullseyes)
+  zws.forEach(z=>{const x=X(z.d), ym=MH/2, hot=(curZWd!=null && Math.abs(z.d-curZWd)<1e-9), c=tcArr(z.mw);
     ctx.fillStyle=`rgb(${c[0]},${c[1]},${c[2]})`; ctx.fillRect(x-2,0,4,MH);
-    ctx.strokeStyle='rgba(255,255,255,0.9)'; ctx.lineWidth=1.4; ctx.strokeRect(x-2,1,4,MH-2);});
+    ctx.strokeStyle=hot?'#fff':'rgba(255,255,255,0.9)'; ctx.lineWidth=hot?2.4:1.4; ctx.strokeRect(x-2,1,4,MH-2);
+    if(markersOn){ const s=hot?6.5:5;
+      ctx.beginPath();ctx.moveTo(x,ym-s);ctx.lineTo(x+s,ym);ctx.lineTo(x,ym+s);ctx.lineTo(x-s,ym);ctx.closePath();
+      ctx.fillStyle='#0b0e14'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=hot?2.2:1.6; ctx.stroke();
+      ctx.beginPath();ctx.arc(x,ym,hot?2.2:1.6,0,7);ctx.fillStyle='#fff';ctx.fill(); }});
   // clickable bullseyes, one per regime band
   if(markersOn){ regimes.forEach(r=>{const xm=(X(r.d_hi)+X(r.d_lo))/2, ym=MH/2;
       const rr=Math.max(3,Math.min((X(r.d_lo)-X(r.d_hi))*0.2,9));
@@ -293,7 +300,7 @@ function showEntry(a){                          // fill the readout for a regime
 }
 function updateDepth(){                          // reflect current d into readout + marker + sphere
   const a=entryAt(d);
-  curHi = a.zw ? -1 : a.idx;
+  curHi = a.zw ? -1 : a.idx; curZWd = a.zw ? a.e.d : null;
   document.getElementById('rdepths').innerHTML =
     `${surf.rays}-ray system · cut depth <b style="color:#e6e9ef">${d.toFixed(3)}</b>`;
   showEntry(a); renderMap();
@@ -304,13 +311,15 @@ function buildPlot(){
   cv=document.createElement('canvas'); cv.width=SZ; cv.height=MH; ctx=cv.getContext('2d');
   cv.addEventListener('mousemove',e=>{const b=cv.getBoundingClientRect();
     const x=(e.clientX-b.left)*SZ/b.width, dd=Math.max(0,Math.min(1,1-x/SZ));
+    const z=zwAt(x), a = z ? {e:z,zw:true} : entryAt(dd);   // zero-width ticks win within ZWHIT px
+    curHi = a.zw?-1:a.idx; curZWd = z?z.d:null;
     cv.style.cursor = markersOn?'pointer':'default';
-    const a=entryAt(dd); curHi = a.zw?-1:a.idx; renderMap(); showEntry(a);});
+    renderMap(); showEntry(a);});
   cv.addEventListener('mouseleave',()=>updateDepth());
   cv.addEventListener('click',e=>{ if(!markersOn) return; const b=cv.getBoundingClientRect();
     const x=(e.clientX-b.left)*SZ/b.width, dd=Math.max(0,Math.min(1,1-x/SZ));
     // snap to a nearby zero-width regime tick, else jump to the band's representative depth
-    let z=null,bd=6; for(const zz of zws){const px=Math.abs(X(zz.d)-x); if(px<bd){bd=px;z=zz;}}
+    const z=zwAt(x);
     d = z ? z.d : entryAt(dd).e.d_rep;
     syncSlider(); updateRings(); updateDepth(); });
   plot.appendChild(cv);
