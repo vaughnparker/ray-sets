@@ -8,15 +8,109 @@ idea, for a reader with only high-school maths. **Draft, not final.**
 Status: **[done]** · **[to build]** · **[needs work]** · **[port]** (exists as a
 notebook / matplotlib script, port to consistent HTML).
 
+---
+
+# The reader's path (the curriculum)
+
+*This section is the target: what the finished project is, and the order a reader meets
+it. The stop-by-stop notes further down are the implementation detail for this path.*
+
+## The goal, in one sentence
+
+**"How many twisty puzzles could exist?" — take a question that looks infinite, and show
+that it has a finite, structured answer.**
+
+The thesis underneath it: **the classification system is the artwork.** The deliverable is
+not a catalogue of puzzles; it is a *periodic table* of them.
+
+## Who it is for
+
+- **Primary — puzzle builders and designers.** Deep physical intuition about puzzles,
+  high-school maths. They know what a Skewb is; they do not know what orbit-stabilizer
+  means. Every call — degrees not radians, "family" not "orbit", concrete before
+  abstract — is made for this reader.
+- **Secondary — mathematically curious general readers**, who need the puzzle intuition
+  supplied but will follow an argument.
+- **Third, quietly — the author, as a research instrument.** This is why exhaustive and
+  ugly data must exist even when it does not belong in the reader's path.
+
+## What the finished thing looks like
+
+A single site. A reader arrives at "how many twisty puzzles could exist?", walks about
+nine interactive pages, and leaves with **a number and a map** — knowing not just *how
+many* but *why the list stops*, and able to point at any puzzle on their shelf and say
+where it sits in the structure.
+
+## The path — four acts
+
+**Spine** = the linear first read. **Reference** = valuable, but a detour on first pass.
+
+| Act | Page | What the reader learns |
+|---|---|---|
+| — | `index.html` | The hook: N×N×N is infinite, yet they are all one *canonical form*. So how many forms are there? |
+| **I. The rule** | `tutorial_1_axes/three-by-three.html` | A piece's kind = **how many axes grip it**. The cube and the sphere are the same object. |
+| | `tutorial_1_axes/one-cube.html` | Rotate the whole cube: every axis must land on an axis, or it **jams**. Families come only in sizes 6/8/12/24 — you do not get to choose. |
+| **II. The finite lists** | `tutorial_3_ray_sets/ray-set-explorer.html` | The complete list exists: **16 ray-sets**. |
+| | `tutorial_4_why_only_three/` | *Why* it is complete: **you run out of room in a triangle** → only 3 symmetry families → **7 elementary** ray-sets. |
+| | `tutorial_5_polyhedra/ray-set-polyhedra.html` | Each ray-set is a familiar solid; the outer shell is cosmetic. |
+| | `tutorial_6_turning_systems/ray-set-turning.html` | Turn orders refine the list (16 → 21): the Domino. |
+| **III. Where you cut** | `tutorial_7…/elementary-explorer.html` | One system, one depth slider: cut depth turns one axis system into many real puzzles. |
+| | `tutorial_7…/elementary-regime-heatmap.html` | All 7 systems at once → **91 elementary regimes**. The payoff number. |
+| | `tutorial_8…/compound-explorer.html` | Two orbits, two depths — the space multiplies. |
+| **IV. Finale** *(unbuilt)* | body-realizability · C_n/D_n · the periodic table | Which puzzles are physically buildable; where "16" stops counting; and each canonical puzzle blossoming into its ~2^k reductions. |
+
+**Reference / deep dives** (kept, but off the spine — to be grouped under their own heading
+in `index.html`):
+`tutorial_7…/elementary-piece-explorer.html` (still the only view that shows **puzzle
+names** — 18 named entries in `surface_data.js` — plus the jump table and skip-to-next-config;
+stays on the spine's shelf until `elementary-explorer.html` absorbs those),
+`tutorial_8…/compound-exact-vd.html` (the chambers-vs-regimes explanation is good teaching and
+may earn its way onto the spine once stop 8 has a narrative),
+`tutorial_8…/compound-gridsearch-heatmap.html`.
+
+## Known holes in the path (2026-08-03)
+
+1. **The spine breaks at stop 4.** The reader is told "here are 16!" and the *why* is a
+   markdown file. Biggest hole; prose is drafted, HTML still to build.
+2. **`index.html` is a menu, not a narrative.** It hands over cards instead of telling the
+   story that makes a reader *want* stop 4. Deferred, but it is what turns a set of pages
+   into one experience.
+3. **Act IV does not exist yet** — body-realizability, the C_n/D_n boundary, and the
+   periodic table are all unbuilt.
+4. **The compound count is unfinished** (~1000 is still a guess; the `--all` runs are
+   multi-week and deferred). The elementary 91 is exact and can carry the headline for now.
+
+---
+
 ## Before the cut-depth explorer — foundations
 
-**1. One cube, up close** — **[needs work]**
-Six face-arrows from the centre; perform a turn and watch the arrows permute.
-*Teaches:* an axis is a ray; a move rotates the whole bundle onto itself.
+**0. A cube and a sphere** — **[done]** (for now): `tutorial_1_axes/three-by-three.html`.
+The gentlest entry: a real 3×3 (26 cubies) beside the *same* cuts drawn on a sphere, with
+**one shared camera** so dragging either rotates both. Cubies are coloured **by piece type**
+using the explorers' palette (centres red / edges blue / corners yellow), because a piece's
+type is exactly **how many axes grip it** — which is its nonzero-coordinate count, and also
+the sphere shader's weight `w`. Verified: 6 + 12 + 8 = 26 on both sides.
+- "Rotate 90°" turns the whole cube; an outlined piece shows it always lands in a slot of its
+  own kind, while the sphere is visibly unchanged (the cuts land back on themselves).
+- A depth slider (0.03–0.56, inside the first regime — verified the regime ends at
+  1/√3 ≈ 0.577) shows the cuts moving while the puzzle stays the 3×3×3: the first taste of a
+  **regime**.
+*Teaches:* piece type = number of gripping axes; the cube and the sphere are one object;
+"lands on its own kind" as the intuition the jamming rule will formalise.
 
-**2. The jamming rule** — **[needs work]**
-Spin a bundle; a bad one sends a ray where no ray was → it jams.
-*Teaches:* the single closure constraint every axis system must obey.
+**1 + 2. One cube, up close / the jamming rule** — **[done]** (for now):
+`tutorial_1_axes/one-cube.html`. Built as **one page, two acts**, since they share all
+machinery (cube + six face-arrows + turn animation) and form a single argument.
+*Note:* the test is a **whole-cube rotation**, not a face turn — a U face turn leaves the
+F/R/B/L centres untouched, so it does not permute the axes; rotating the whole cube does.
+- *Act 1 — the bundle:* six face-arrows from the centre; turn about any one (menu or click
+  an arrow) and watch the arrows permute, with the permutation printed (`F → R`, …).
+- *Act 2 — the jamming rule:* add a seventh axis aimed anywhere (tilt/spin sliders), turn,
+  and see it land where no axis was → **✕ it jams**. "Add its whole family" then closes the
+  bundle by adding the full orbit — and the family is only ever **6, 8, 12 or 24**
+  (verified: the cube's rotation group has order 24; orbit sizes are 24/|stabilizer|).
+*Teaches:* an axis is a ray; a move permutes the bundle; closure is the one constraint —
+and you cannot choose a family's size, which is exactly why only finitely many bundles exist.
 
 **3. The 16 ray-sets** — **[done]** (for now): `tutorial_3_ray_sets/ray-set-explorer.html`
 Browse all 16 rotatable bundles, grouped by T / O / I; rays drawn as arrows from the
@@ -24,11 +118,20 @@ centre, coloured by family. (Shows the 16 distinct ray-sets from `systems_data.j
 not the 21 pre-dedup candidates the matplotlib `rayview` showed.)
 *Teaches:* a complete, finite list exists — the headline result.
 
-**4. Why only these? (poles)** — **[to build]**
-Poles on a sphere, orbit families, and the counting that forces T / O / I.
+**4. Why only these?** — **[prose drafted, visualization to build]**, in
+`tutorial_4_why_only_three/`.
 *Teaches:* *why* the list is short and complete.
-*Note:* [`klein.md`](klein.md) is a good start; aim for an even better, more visual
-proof.
+- `why_only_three.md` — **[draft]** the accessible proof, chosen over klein.md's counting
+  argument: poles → the sphere splits into identical triangles → angles 180/p, 180/q, 180/r
+  → a spherical triangle must overshoot 180° → **1/p + 1/q + 1/r > 1** → only (2,2,n),
+  (2,3,3), (2,3,4), (2,3,5). Uses degrees, no radians, no group-theory vocabulary; falls out
+  with the right rotation counts (12 / 24 / 60) as a free check. Known soft spot, flagged
+  in-text: it *assumes* the poles tile the sphere into triangles (klein.md avoids that
+  assumption but is fiddlier).
+- `klein.md` — the rigorous pole-counting proof, kept as the airtight appendix.
+- `from_groups_to_raysets.md` — **[to write]** 3 groups × 3 pole families = 9, minus 2
+  coincidences (tetra edges = cube faces; tetra faces = mirror of tetra corners) = **7**.
+- Then the HTML: drag p/q/r and watch the triangle shrink to nothing when the budget runs out.
 
 **5. Ray-sets are polyhedra** — **[done]** (for now):
 `tutorial_5_polyhedra/ray-set-polyhedra.html`
@@ -90,6 +193,12 @@ mechanisms."
 
 ## Notes
 
+- **Folder numbering — deferred renumber (2026-08-03).** The `tutorial_N_*` folders currently
+  have gaps: **2** (the jamming rule merged into `tutorial_1_axes/one-cube.html` as Act 2) and
+  **4** (poles, unbuilt). Renaming would break already-shared URLs — the
+  `tutorial_7_elementary_cut_depths/elementary-piece-explorer.html` link is posted in the
+  puzzle-builders Discord. Decision: **leave the numbering alone for now, renumber in the far
+  future** (in one pass, once the set of stops is stable).
 - Rough shape: ~6 before, the explorer, ~4 after (~11 total). A tighter **core
   spine** if that's too many: 1 → 3 → 4 → 6 → **7** → 9 → 11.
 - Much of the "before" already exists — as notebooks / matplotlib (`rayview`,
