@@ -206,7 +206,8 @@ to 16 with explicit maps rather than assertion, and letting you look at every on
 them.
 
 For the theorem itself — its history and a full proof written for a reader with only
-high-school maths — see [`klein.md`](klein.md). It derives
+high-school maths — see [`klein.md`](tutorial_4_why_only_three/klein.md), or the gentler
+[`why_only_three.md`](tutorial_4_why_only_three/why_only_three.md). It derives
 $\sum_i (1 - 1/n_i) = 2 - 2/N$ from scratch and solves it, showing why $C_n$, $D_n$,
 $T$, $O$ and $I$ are the *only* possibilities.
 

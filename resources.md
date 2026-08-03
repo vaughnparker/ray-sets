@@ -47,7 +47,7 @@ External references on twisty puzzles and their axis systems.
   watch the piece configuration change.
 
 - **[Group Theory for Puzzles](https://www.jaapsch.net/puzzles/groups.htm)** — by Jaap Scherphuis.
-  A full group-theory course aimed at puzzles, whose classification proof closely parallels this repository's [`klein.md`](klein.md).
+  A full group-theory course aimed at puzzles, whose classification proof closely parallels this repository's [`klein.md`](tutorial_4_why_only_three/klein.md).
   - Its Theorem 6.6 classifies the finite 3-D rotation groups (cyclic, dihedral, tetrahedral, octahedral, icosahedral) by **pole counting**, exactly the argument in `klein.md`.
   - Reaches the same governing equation, $2(1 - 1/N) = \sum_i (1 - 1/k_i)$ — identical to `klein.md`'s $\sum_i (1 - 1/n_i) = 2 - 2/N$ — via the Orbit-Counting Theorem (Burnside's lemma), where `klein.md` instead does the counting by an elementary "bins" argument to avoid the machinery.
 

@@ -220,7 +220,7 @@ of this repository builds on.
 families of size 4 — its corners and its faces. On a cube, a corner sits opposite a
 face across one axis, so they share a family; on a tetrahedron, a corner sits opposite
 a *face*, and no rotation ever swaps the two, so they stay separate. See
-[`intro.md`](intro.md) and the de-duplication in [`lib/raysets.py`](lib/raysets.py).)
+[`../intro.md`](../intro.md) and the de-duplication in [`../lib/raysets.py`](../lib/raysets.py).)
 
 ## A last echo
 
