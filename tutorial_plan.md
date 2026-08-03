@@ -57,16 +57,31 @@ where it sits in the structure.
 | **III. Where you cut** | `tutorial_7…/elementary-explorer.html` | One system, one depth slider: cut depth turns one axis system into many real puzzles. |
 | | `tutorial_7…/elementary-regime-heatmap.html` | All 7 systems at once → **91 elementary regimes**. The payoff number. |
 | | `tutorial_8…/compound-explorer.html` | Two orbits, two depths — the space multiplies. |
-| **IV. Finale** *(unbuilt)* | body-realizability · C_n/D_n · the periodic table | Which puzzles are physically buildable; where "16" stops counting; and each canonical puzzle blossoming into its ~2^k reductions. |
+| **IV. Finale** *(unbuilt)* | **the periodic table of twisty puzzles** | All **91** elementary puzzles laid out so the arrangement itself carries the meaning. The payoff — and the artwork. Scope: elementary only; compound, reductions and body questions stay in the appendix so the table reads cleanly. |
 
-**Reference / deep dives** (kept, but off the spine — to be grouped under their own heading
-in `index.html`):
-`tutorial_7…/elementary-piece-explorer.html` (still the only view that shows **puzzle
-names** — 18 named entries in `surface_data.js` — plus the jump table and skip-to-next-config;
-stays on the spine's shelf until `elementary-explorer.html` absorbs those),
-`tutorial_8…/compound-exact-vd.html` (the chambers-vs-regimes explanation is good teaching and
-may earn its way onto the spine once stop 8 has a narrative),
-`tutorial_8…/compound-gridsearch-heatmap.html`.
+## The appendix
+
+Everything true and worth keeping that would slow the spine down. Grouped under its own
+heading in `index.html`, clearly marked as optional.
+
+**Existing pages:**
+- `tutorial_7…/elementary-piece-explorer.html` — still the only view that shows **puzzle
+  names** (18 named entries in `surface_data.js`), plus the jump table and
+  skip-to-next-config. Stays until `elementary-explorer.html` absorbs those.
+- `tutorial_8…/compound-exact-vd.html` — the chambers-vs-regimes explanation is good
+  teaching and may earn its way onto the spine once stop 8 has a narrative.
+- `tutorial_8…/compound-gridsearch-heatmap.html`.
+
+**Planned appendix chapters** (all unbuilt — moved off the finale so the periodic table
+stays focused):
+- **The body matters** — which puzzles are physically buildable, and why some 20-axis
+  puzzles have no face-turning-icosahedron form and exist only as corner-turning
+  dodecahedra. (Was stop 9.)
+- **The families that never stop (C_n / D_n)** — prisms and turntables, and where "16"
+  stops counting. (Was stop 10.)
+- **Reductions (~2^k)** — each canonical puzzle blossoming into its family of
+  orbit-hidings (edge-only cube, corners-only, …). Parked here for now; the headline
+  number stays the canonical count.
 
 ## Known holes in the path (2026-08-03)
 
@@ -75,8 +90,9 @@ may earn its way onto the spine once stop 8 has a narrative),
 2. **`index.html` is a menu, not a narrative.** It hands over cards instead of telling the
    story that makes a reader *want* stop 4. Deferred, but it is what turns a set of pages
    into one experience.
-3. **Act IV does not exist yet** — body-realizability, the C_n/D_n boundary, and the
-   periodic table are all unbuilt.
+3. **The finale does not exist yet** — the periodic table of the 91 elementary puzzles is
+   unbuilt, and it is the single thing the whole spine is walking toward. (The appendix
+   chapters are unbuilt too, but nothing depends on them.)
 4. **The compound count is unfinished** (~1000 is still a guess; the `--all` runs are
    multi-week and deferred). The elementary 91 is exact and can carry the headline for now.
 
@@ -171,25 +187,30 @@ bound); still to do is the narrative framing, the three-orbit systems, and switc
 it to the surface lens.
 *Teaches:* combining families multiplies the space.
 
-**9. The body matters** — **[to build]**
+**9. The body matters** — **[to build]** · **APPENDIX** (2026-08-03)
 The same axis system realised on an icosahedron vs a dodecahedron vs a sphere, and
 which regimes survive on which body.
 *Teaches:* body-realizability — e.g. the shallow `I·20` regimes that exist as a
 corner-turning dodecahedron but have no face-turning-icosahedron form.
 
-**10. The families that never stop (C_n / D_n)** — **[to build]**
+**10. The families that never stop (C_n / D_n)** — **[to build]** · **APPENDIX** (2026-08-03)
 Prisms and turntables; why they are infinite and excluded from the 16.
 *Teaches:* the boundary of the finite theorem — what "16" does and doesn't count.
 
-**11. The puzzle gallery / "all possible puzzles"** — **[to build]**
-The 16 (plus notable extras) mapped to physical puzzles: Rubik's Cube, Megaminx,
-Skewb, Pyraminx, Helicopter, … The finale frames this as *"here are all the twisty
-puzzles that can exist"* — under the fenced scope in README's "Scope, honestly":
-mechanism-not-exterior, polyhedral-only (no C_n/D_n), exactly one cut per ray, and
-**no jumbling / no bandaging**. "All puzzles" = every {ray-set × turning system ×
-one-cut depth regime}.
+**10b. Reductions (~2^k)** — **[to build]** · **APPENDIX** (2026-08-03)
+Each canonical puzzle blossoming into its family of orbit-hidings (edge-only cube,
+corners-only, …), plus the dual direction (super/picture cube). Parked off the finale so
+the headline stays the *canonical* count.
+
+**11. The periodic table of twisty puzzles** — **[to build]** · **THE FINALE**
+All **91** elementary puzzles arranged so the arrangement itself carries the meaning —
+the periodic-table / taxonomy treatment, not a gallery. Scope deliberately narrowed
+(2026-08-03) to **elementary only**: compound systems, reductions, and body-realizability
+all move to the appendix so the table reads cleanly. Still framed by the fenced scope in
+README's "Scope, honestly": mechanism-not-exterior, polyhedral-only (no C_n/D_n), exactly
+one cut per ray, no jumbling / no bandaging.
 *Teaches:* theory → the shelf. The payoff, and the closest thing to "all possible
-mechanisms."
+mechanisms." The user has visualization ideas for this.
 
 ## Notes
 
