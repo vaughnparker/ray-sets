@@ -23,6 +23,20 @@ External references on twisty puzzles and their axis systems.
   - Distinguishes two kinds of cut: **Type A** (a depth where pieces *appear* — imprecise, the exact value doesn't matter) and **Type D** (a depth where pieces *disappear* — a precise critical depth, usually irrational). This is the same appear/disappear distinction that a cut-depth phase diagram computes.
   - Lists exact critical depths for the Type-D cuts, several golden-ratio-flavoured — e.g. Radiolarian 4 = Eitan's Star at $(\sqrt5-1)/2$, Radiolarian 2 at $\sqrt5/3$, Radiolarian 9 at $1/3$.
   - Notes the 15 are a deliberately chosen subset, not every face-turning icosahedron (intermediate ones like "4.5" and "8.5" exist).
+  - Also crossposted to [r/Cubers](https://www.reddit.com/r/Cubers/comments/1ndx3wt/the_radiolarian_family/).
+
+- **[Tetra55's Radiolarian piece-type census](https://old.reddit.com/r/Cubers/comments/1isxjbv/daily_discussion_thread_feb_19_2025/mdordk6/)** — a comment thread on r/Cubers (Feb 2025), with an independent picture-chart by JorlJorl. Linked from the Radiolarian guide above.
+  A hand-built table of **which piece types exist on each Radiolarian**, R1.5 → R15 — the same census this repository computes automatically, derived by inspection instead. The single best external cross-check for [`tutorial_7_elementary_cut_depths`](tutorial_7_elementary_cut_depths).
+  - Names **18 piece types** using a systematic shallow / deep / super-deep / super-super-deep scheme applied to middle centers, vertices, midges, wings, x-centers and oblique centers — useful vocabulary this project currently lacks.
+  - Key result: solving **R3, R6, R9 and R14** covers every piece type in the series.
+  - Confirms complexity is **not monotonic in depth**. Deeper is often *simpler*: R4 (Eitan's Star), R5, R7, R9, R11, R13 and R15 each *lose* piece types because cuts merge — at the face centres for R9, at the vertices for R11. That is exactly this project's notion of a **critical depth**, observed by hand.
+  - Identifies intermediate puzzles missing from twistypuzzles.com — "R4.5" and one between R8 and R9 (Tetra55's "R8x", JorlJorl's "Radio Victoria"/R8.5) — corroborating that the famous 15 are a chosen subset, not the full set of regimes. The thread also self-corrects: Tetra55 concedes a "2nd deep x-centers" type they had listed does not exist.
+
+- **[Cut depths](https://hypercubing.xyz/theory/cut-depths/)** — the Hypercubing wiki, maintained by the Hypercubers community.
+  A reference table of cut-depth ranges and the puzzle each one produces — the same notion as this repository's **regimes**, arrived at independently. Directly relevant to [`tutorial_7_elementary_cut_depths`](tutorial_7_elementary_cut_depths).
+  - Gives each range as an **exact numeric interval** (e.g. `(-1/3, 1)`) rather than a colloquial "shallow"/"deep" label, and names a reference puzzle for each: Halpern-Meier Tetrahedron, Tetraminx, Megaminx, Pyraminx Crystal, Starminx, and the numbered Radiolarians.
+  - Covers the tetrahedron, dodecahedron and icosahedron, in both facet-turning and vertex-turning forms — and extends to **4D** (the 4-simplex), which this repo does not attempt.
+  - **Useful here:** it supplies community-accepted *names* for regimes that this project currently labels only by number — see the naming task in [`TODO.md`](TODO.md).
 
 - **[VeryPuzzle — CORD and DIRT explained](https://www.verypuzzle.com/other/cord-and-dirt-explained/)** — by VeryPuzzle.
   A classification of twisty puzzles by axis system, closely parallel to this repository's ray-sets. Two master bundles, each three axis systems built from arrows on a cube or a dodecahedron:
@@ -56,3 +70,22 @@ External references on twisty puzzles and their axis systems.
   - Organised by shape (tetrahedral, cubic, octahedral, dodecahedral, icosahedral, spherical, …), turning mechanic (face / vertex / edge / hybrid), order, and cutting style.
   - Covers the Rubik's Cube and hundreds of variants, with photos, patent references, solutions, and historical notes.
   - A collector's/curator's survey rather than a mathematical classification — useful for putting names and history to the puzzles the axis systems here describe.
+
+- **[Virtual Polyhedra](https://www.georgehart.com/virtual-polyhedra/vp.html)** — by George W. Hart.
+  The encyclopedic polyhedron library, built in the mid-1990s: thousands of models spanning the Platonic, Kepler-Poinsot, Archimedean, Johnson and uniform solids, plus compounds, stellations, deltahedra and zonohedra — including, in Hart's words, "hundreds here which have never been illustrated in any previous publication."
+  - Models are interactive VRML. The site was effectively unusable for ~20 years as browsers dropped VRML support, and was revived in 2024.
+  - Includes **[Polyhedra in art](https://www.georgehart.com/virtual-polyhedra/art.html)** — a short illustrated history running from Neolithic carved stone spheres and Roman dodecahedra, through the Italian Renaissance (Leonardo, Piero della Francesca, Pacioli) and the German Renaissance (Dürer, Jamnitzer, Kepler), to Escher and modern sculpture. An index with brief notes rather than deep analysis.
+
+- **[Polyhedra Viewer](https://polyhedra.tessera.li/)** — by Nat Alison (tesseralis). MIT licensed, source at [github.com/tesseralis/polyhedra-viewer](https://github.com/tesseralis/polyhedra-viewer).
+  An interactive viewer for convex polyhedra — Platonic, Archimedean, prisms and antiprisms, and the Johnson solids — that animates the transformations between related solids rather than just displaying them.
+  - Its geometric data comes directly from **Hart's Virtual Polyhedra** above, so the two are ancestor and descendant.
+  - The clearest reference point for what a polished polyhedron explorer looks like.
+  - The author's talk on building it: **["Polyhedra, I Choose You! Letting Your Passions Take Form"](https://www.youtube.com/watch?v=jhdJHBD9Fts)**, JSConf EU 2019 — on turning a personal fascination into a finished, public artifact.
+
+- **["Platonic Solids from the Ground Up"](https://www.youtube.com/watch?v=XaGN_sN01to)** — by yellowmarkers, part of the *Polytopics* series.
+  A from-first-principles derivation of the five Platonic solids.
+  - Directly relevant to [`tutorial_4_why_only_three`](tutorial_4_why_only_three), which takes exactly this derivation — build one corner, add faces until the angles run out — as its model for how a completeness proof should *feel*: the reader walks every case rather than being handed the answer.
+
+- **["Fair Dice (Part 1)"](https://www.youtube.com/watch?v=G7zT9MljJ3Y)** — Numberphile (Brady Haran), with Professor Persi Diaconis of Stanford. A Part 2 follows, and both draw on the Diaconis–Keller paper on fair dice.
+  Which shapes can serve as a *fair* die? The question turns entirely on symmetry: a solid is fair when its symmetry group can carry any face onto any other.
+  - The same style of question as this repository's, one step sideways — classifying solids by how their symmetry group acts on their **faces**, where this project classifies by how it acts on their **axes**. Worth knowing that the fair-dice literature (face-transitive, or *isohedral*, solids) is the neighbouring classification.
