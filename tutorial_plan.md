@@ -56,7 +56,7 @@ where it sits in the structure.
 | | `tutorial_6_turning_systems/ray-set-turning.html` | Turn orders refine the list (16 → 21): the Domino. |
 | **III. Where you cut** | `tutorial_7…/elementary-explorer.html` | One system, one depth slider: cut depth turns one axis system into many real puzzles. |
 | | `tutorial_7…/elementary-regime-heatmap.html` | All 7 systems at once → **91 elementary regimes**. The payoff number. |
-| | `tutorial_8…/compound-explorer.html` | Two orbits, two depths — the space multiplies. |
+| | *(hand-off paragraph, not a page)* | "There are 9 more ray-sets whose rays come in **two families**, each with its own depth. Everything here still works — a square of depths instead of a line — and the full count is still open. → appendix." |
 | **IV. Finale** *(unbuilt)* | **the periodic table of twisty puzzles** | All **91** elementary puzzles laid out so the arrangement itself carries the meaning. The payoff — and the artwork. Scope: elementary only; compound, reductions and body questions stay in the appendix so the table reads cleanly. |
 
 ## The appendix
@@ -68,9 +68,13 @@ heading in `index.html`, clearly marked as optional.
 - `tutorial_7…/elementary-piece-explorer.html` — still the only view that shows **puzzle
   names** (18 named entries in `surface_data.js`), plus the jump table and
   skip-to-next-config. Stays until `elementary-explorer.html` absorbs those.
-- `tutorial_8…/compound-exact-vd.html` — the chambers-vs-regimes explanation is good
-  teaching and may earn its way onto the spine once stop 8 has a narrative.
-- `tutorial_8…/compound-gridsearch-heatmap.html`.
+- **All of `tutorial_8_compound_cut_depths/`** — `compound-explorer.html`,
+  `compound-exact-vd.html`, `compound-gridsearch-heatmap.html`. Moved off the spine
+  (2026-08-03) because the finale is elementary-only, so compound never reaches the payoff;
+  it is also the only spine material resting on **unfinished** data (~1000 is a guess; the
+  `--all` runs are multi-week). Consequence: the spine is now finishable with data already
+  in hand. **Required in exchange:** Act III must end with the hand-off paragraph above, so
+  the reader who was told "16 ray-sets" is not silently shown only 7.
 
 **Planned appendix chapters** (all unbuilt — moved off the finale so the periodic table
 stays focused):
@@ -94,7 +98,9 @@ stays focused):
    unbuilt, and it is the single thing the whole spine is walking toward. (The appendix
    chapters are unbuilt too, but nothing depends on them.)
 4. **The compound count is unfinished** (~1000 is still a guess; the `--all` runs are
-   multi-week and deferred). The elementary 91 is exact and can carry the headline for now.
+   multi-week and deferred) — but as of 2026-08-03 this **no longer blocks anything**, since
+   compound moved to the appendix and the finale is elementary-only. The exact **91** carries
+   the headline; compound is now genuinely optional work.
 
 ---
 
@@ -180,7 +186,10 @@ that cuts-on-sphere visual could return here as an HTML view later if wanted.
 
 ## After — generalise, then the edges
 
-**8. Compound systems** — **[needs work]**, in `tutorial_8_compound_cut_depths/`.
+**8. Compound systems** — **[needs work]** · **APPENDIX** (2026-08-03), in
+`tutorial_8_compound_cut_depths/`. Off the spine: the finale is elementary-only, so this
+never reaches the payoff, and its counts are the only unfinished data. The spine instead
+ends Act III with a short hand-off paragraph pointing here.
 Two or three orbits, each with its own depth; 2-D / 3-D regime maps. The 2-orbit
 cut-depth view exists (`compound-gridsearch-heatmap.html`, grid-sampled = a lower
 bound); still to do is the narrative framing, the three-orbit systems, and switching

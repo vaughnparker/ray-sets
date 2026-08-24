@@ -56,4 +56,4 @@ shrink.
 The full enumeration, with the table of all 21 and why the rest are forced, is in
 [turning_systems.md](turning_systems.md). For the formal definitions see
 [../intro.md](../intro.md); for why only these symmetries exist at all,
-[../klein.md](../klein.md).
+[../tutorial_4_why_only_three/klein.md](../tutorial_4_why_only_three/klein.md).

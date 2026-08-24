@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>A cube and a sphere — the same 26 pieces</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;--line:#222a37;--accent:#1f6feb;--good:#37d67a;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  #app{display:flex;height:100vh;overflow:hidden;}
+  #stage{flex:1;display:flex;flex-direction:column;min-width:0;}
+  #views{flex:1;display:flex;touch-action:none;min-height:0;}   /* OrbitControls listens here, so dragging either half works */
+  .half{flex:1;position:relative;min-width:0;}
+  .half + .half{border-left:1px solid var(--line);}
+  .vlab{position:absolute;top:12px;left:0;right:0;text-align:center;font-size:12px;color:var(--muted);pointer-events:none;}
+  .vlab b{color:var(--ink);}
+  #panel{width:390px;background:var(--panel);padding:20px;overflow-y:auto;border-left:1px solid var(--line);}
+  h1{font-size:17px;margin:0 0 6px;}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.55;}
+  .why{background:#0f141d;border:1px solid #2a3342;border-left:3px solid var(--good);border-radius:8px;padding:11px 12px;font-size:12px;line-height:1.55;margin:4px 0 0;}
+  label{font-size:12px;color:var(--muted);display:block;margin:14px 0 6px;}
+  select,button.act{width:100%;padding:8px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;cursor:pointer;}
+  button.act.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  input[type=range]{width:100%;}
+  .readout{background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:12px;margin-top:14px;}
+  .big{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;}
+  .trow{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted);margin:7px 0;}
+  .sw{width:13px;height:13px;border-radius:3px;flex:0 0 auto;}
+  .tn{flex:1;} .tn b{color:var(--ink);}
+  .tv{color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums;}
+  .hint{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.55;}
+  .val{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;}
+  #banner{position:absolute;left:0;right:0;top:40px;text-align:center;font-size:15px;font-weight:800;color:var(--good);opacity:0;transition:opacity .15s;pointer-events:none;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <div id="views">
+      <div class="half" id="vA"><div class="vlab">the puzzle — <b>26 pieces</b></div><div id="banner"></div></div>
+      <div class="half" id="vB"><div class="vlab">the same cuts on a <b>sphere</b></div></div>
+    </div>
+  </div>
+  <div id="panel">
+    <h1>A cube and a sphere</h1>
+    <p class="sub">The same puzzle, twice. On the left the plastic you know; on the right the
+      six cuts drawn on a sphere. <b>Drag either one</b> — they turn together, because they are
+      the same object seen two ways.</p>
+
+    <div class="why"><b>Piece type = how many axes grip it.</b> A <b>corner</b> sits where
+      <b>three</b> faces meet, so three axes turn it. An <b>edge</b> belongs to <b>two</b>.
+      A <b>centre</b> to just <b>one</b>. That count is the only thing that distinguishes the
+      kinds of piece — and it is what the colours mean on both shapes.</p>
+
+    <div class="readout">
+      <div class="big" id="total">26 pieces</div>
+      <div class="trow"><span class="sw" style="background:rgb(255,107,107)"></span>
+        <span class="tn"><b>centres</b> — gripped by 1 axis</span><span class="tv">6</span></div>
+      <div class="trow"><span class="sw" style="background:rgb(76,201,240)"></span>
+        <span class="tn"><b>edges</b> — gripped by 2</span><span class="tv">12</span></div>
+      <div class="trow"><span class="sw" style="background:rgb(255,209,102)"></span>
+        <span class="tn"><b>corners</b> — gripped by 3</span><span class="tv">8</span></div>
+    </div>
+
+    <label>Rotate the whole cube about</label>
+    <select id="axisSel"></select>
+    <button class="act primary" id="spin" style="margin-top:8px;">Rotate 90°</button>
+    <p class="hint">Watch the <b>outlined</b> piece. It moves — but it always lands in a slot of
+      its <b>own kind</b>: a corner into a corner, an edge into an edge. It could never fit
+      anywhere else. And the sphere doesn't change at all, because the cuts land back on themselves.</p>
+
+    <label>Cut depth <span class="val" id="dv">0.289</span></label>
+    <input type="range" id="depth" min="0.03" max="0.56" step="0.005" value="0.289"/>
+    <p class="hint">Slide it. The cuts move, but the <b>puzzle doesn't change</b> — still 6 + 12 + 8.
+      Every depth in this whole range builds the same 3×3×3. That band of depths is called a
+      <b>regime</b>, and finding all of them is what the later chapters do.</p>
+
+    <p class="hint" style="margin-top:16px;">Next: throw the plastic away and keep only the six
+      arrows → <a href="one-cube.html" style="color:#8ab4ff;">axes &amp; the jamming rule</a>.</p>
+  </div>
+</div>
+
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+<script>
+const TYPE=[null,[255,107,107],[76,201,240],[255,209,102]];      // w -> colour (same palette as the explorers)
+const hex=c=>(c[0]<<16)|(c[1]<<8)|c[2];
+const FACE=[[0,1,0,'U'],[0,-1,0,'D'],[0,0,1,'F'],[0,0,-1,'B'],[1,0,0,'R'],[-1,0,0,'L']];
+
+// ---- one camera, two renderers: the two views stay perfectly in sync ----
+const vA=document.getElementById('vA'), vB=document.getElementById('vB');
+const cam=new THREE.PerspectiveCamera(45,1,0.01,100); cam.position.set(3.1,2.4,3.1);
+const rA=new THREE.WebGLRenderer({antialias:true}); rA.setPixelRatio(devicePixelRatio); vA.appendChild(rA.domElement);
+const rB=new THREE.WebGLRenderer({antialias:true}); rB.setPixelRatio(devicePixelRatio); vB.appendChild(rB.domElement);
+rA.domElement.style.display='block'; rB.domElement.style.display='block';
+// controls listen on the wrapper holding BOTH canvases, so dragging either rotates both
+const controls=new THREE.OrbitControls(cam, document.getElementById('views'));
+controls.enableDamping=true; controls.enablePan=false;
+
+const sceneA=new THREE.Scene(); sceneA.background=new THREE.Color(0x0b0e14);
+const sceneB=new THREE.Scene(); sceneB.background=new THREE.Color(0x0b0e14);
+sceneA.add(new THREE.AmbientLight(0xffffff,0.72));
+const kl=new THREE.DirectionalLight(0xffffff,0.6); kl.position.set(1,1.4,1); sceneA.add(kl);
+
+// ---- left: the 26 cubies, coloured by piece type ----
+const cubies=new THREE.Group(); sceneA.add(cubies);
+const G=0.63, SZ=0.58;                                            // slot spacing, cubie size
+let pieces=[], tracked=null, busy=false;
+for(let x=-1;x<=1;x++)for(let y=-1;y<=1;y++)for(let z=-1;z<=1;z++){
+  const w=Math.abs(x)+Math.abs(y)+Math.abs(z);                    // nonzero coords = axes gripping it
+  if(w===0) continue;                                             // the hidden core
+  const m=new THREE.Mesh(new THREE.BoxGeometry(SZ,SZ,SZ),
+    new THREE.MeshStandardMaterial({color:hex(TYPE[w]),roughness:0.65}));
+  m.position.set(x*G,y*G,z*G);
+  const edge=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(SZ,SZ,SZ)),
+    new THREE.LineBasicMaterial({color:0x0b0e14})); m.add(edge);
+  cubies.add(m); pieces.push({m, p:new THREE.Vector3(x,y,z), w});
+}
+// outline one corner so its journey is visible
+const ring=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(SZ*1.14,SZ*1.14,SZ*1.14)),
+  new THREE.LineBasicMaterial({color:0xffffff})); sceneA.add(ring);
+tracked=pieces.find(q=>q.w===3);
+const placeRing=()=>ring.position.copy(tracked.m.position);
+placeRing();
+
+// ---- right: the same six cuts, on a sphere ----
+const uni={ rays:{value:FACE.map(f=>new THREE.Vector3(f[0],f[1],f[2]))},
+            rdepth:{value:0.289}, lineW:{value:0.013} };
+const sphereMat=new THREE.ShaderMaterial({uniforms:uni,
+  vertexShader:`varying vec3 vPos; void main(){vPos=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader:`
+precision highp float;
+varying vec3 vPos;
+uniform vec3 rays[6];
+uniform float rdepth; uniform float lineW;
+vec3 typeColor(int w){
+  if(w==1) return vec3(1.0,0.42,0.42);
+  if(w==2) return vec3(0.30,0.79,0.94);
+  if(w==3) return vec3(1.0,0.82,0.40);
+  return vec3(0.16,0.18,0.22);
+}
+void main(){
+  vec3 p=normalize(vPos);
+  int w=0; float mind=10.0;
+  for(int i=0;i<6;i++){
+    float dp=dot(p,rays[i]);
+    mind=min(mind, abs(acos(clamp(dp,-1.0,1.0)) - acos(clamp(rdepth,-1.0,1.0))));
+    if(dp>rdepth) w++;
+  }
+  vec3 base=typeColor(w);
+  vec3 L=normalize(vec3(0.5,0.85,0.6));
+  base *= 0.58+0.42*max(0.0,dot(p,L));
+  base = mix(base, vec3(0.02,0.02,0.03), smoothstep(lineW,lineW*0.4,mind));
+  gl_FragColor=vec4(base,1.0);
+}`});
+sceneB.add(new THREE.Mesh(new THREE.SphereGeometry(1.32,256,128), sphereMat));
+
+// ---- the whole-cube rotation ----
+const sel=document.getElementById('axisSel');
+FACE.forEach((f,i)=>{const o=document.createElement('option'); o.value=i; o.textContent='the '+f[3]+' axis'; sel.appendChild(o);});
+function banner(t){const b=document.getElementById('banner');
+  b.textContent=t; b.style.opacity=1; clearTimeout(banner._t); banner._t=setTimeout(()=>b.style.opacity=0,2400);}
+
+document.getElementById('spin').onclick=()=>{
+  if(busy) return; busy=true;
+  const f=FACE[+sel.value], ax=new THREE.Vector3(f[0],f[1],f[2]).normalize();
+  const t0=performance.now(), dur=760;
+  (function step(now){
+    const t=Math.min(1,(now-t0)/dur), e=t<0.5?2*t*t:1-((-2*t+2)**2)/2;
+    cubies.setRotationFromAxisAngle(ax, e*Math.PI/2);
+    ring.position.copy(tracked.m.position.clone().applyAxisAngle(ax, e*Math.PI/2));
+    if(t<1) requestAnimationFrame(step);
+    else{
+      cubies.rotation.set(0,0,0);                                  // snap: every cubie takes a new slot
+      const R=new THREE.Matrix4().makeRotationAxis(ax,Math.PI/2);
+      pieces.forEach(q=>{ q.p.applyMatrix4(R);
+        q.p.set(Math.round(q.p.x),Math.round(q.p.y),Math.round(q.p.z));
+        q.m.position.set(q.p.x*G,q.p.y*G,q.p.z*G); });
+      placeRing(); busy=false;
+      banner('landed on its own kind');
+    }
+  })(performance.now());
+};
+
+document.getElementById('depth').addEventListener('input',e=>{
+  uni.rdepth.value=+e.target.value;
+  document.getElementById('dv').textContent=(+e.target.value).toFixed(3);
+});
+
+function resize(){
+  [[rA,vA],[rB,vB]].forEach(([r,v])=>r.setSize(v.clientWidth,v.clientHeight));
+  cam.aspect=vA.clientWidth/Math.max(1,vA.clientHeight); cam.updateProjectionMatrix();
+}
+window.addEventListener('resize',resize); resize();
+(function loop(){requestAnimationFrame(loop); controls.update();
+  rA.render(sceneA,cam); rB.render(sceneB,cam);})();
+</script>
+</body>
+</html>

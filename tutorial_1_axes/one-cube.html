@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>One cube, up close — axes and the jamming rule</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#151a24;--ink:#e6e9ef;--muted:#98a2b3;--line:#222a37;--accent:#1f6feb;--good:#37d67a;--bad:#ff5c5c;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  #app{display:flex;height:100vh;overflow:hidden;}
+  #view{flex:1;position:relative;min-width:0;}
+  #panel{width:390px;background:var(--panel);padding:20px;overflow-y:auto;border-left:1px solid var(--line);}
+  h1{font-size:17px;margin:0 0 6px;}
+  .sub{font-size:12px;color:var(--muted);margin:0 0 14px;line-height:1.55;}
+  .acts{display:flex;gap:8px;margin-bottom:16px;}
+  .acts button{flex:1;font-size:12px;padding:8px 4px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);cursor:pointer;}
+  .acts button.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  label{font-size:12px;color:var(--muted);display:block;margin:12px 0 6px;}
+  select,button.act{width:100%;padding:8px;border-radius:8px;border:1px solid #2a3342;background:#0f141d;color:var(--ink);font-size:13px;cursor:pointer;}
+  button.act:hover{border-color:var(--accent);}
+  button.act.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  input[type=range]{width:100%;}
+  .why{background:#0f141d;border:1px solid #2a3342;border-left:3px solid var(--good);border-radius:8px;padding:11px 12px;font-size:12px;line-height:1.55;margin:4px 0 0;}
+  .why.warn{border-left-color:var(--bad);}
+  .readout{background:#0f141d;border:1px solid #2a3342;border-radius:10px;padding:12px;font-size:13px;margin-top:14px;line-height:1.6;}
+  .big{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1;}
+  .perm{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted);margin-top:6px;line-height:1.7;}
+  .perm b{color:var(--ink);}
+  .hint{font-size:11px;color:var(--muted);margin-top:12px;line-height:1.55;}
+  .verdict{font-size:14px;font-weight:700;margin-top:10px;}
+  .ok{color:var(--good);} .no{color:var(--bad);}
+  #caption{position:absolute;left:0;right:0;bottom:0;padding:14px 20px;background:linear-gradient(transparent,rgba(6,8,12,.92));font-size:13px;color:var(--muted);pointer-events:none;}
+  #banner{position:absolute;left:0;right:0;top:18px;text-align:center;font-size:15px;font-weight:800;opacity:0;transition:opacity .15s;pointer-events:none;}
+  .val{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="view"><div id="banner"></div><div id="caption"></div></div>
+  <div id="panel">
+    <h1>One cube, up close</h1>
+    <p class="sub">Before counting every puzzle, hold a single one. A Rubik's Cube has
+      <b>six</b> directions you can turn around — one per face. Draw each as an arrow from
+      the centre. That bundle of arrows is the whole story.</p>
+
+    <div class="acts">
+      <button id="a1" class="active">1 · The bundle</button>
+      <button id="a2">2 · The jamming rule</button>
+    </div>
+
+    <!-- ACT 1 -->
+    <div id="act1">
+      <div class="why"><b>The one thing to notice.</b> Rotate the <b>whole cube</b> 90° about any
+        one of its face axes and the six arrows <b>shuffle among themselves</b>. Not one of them
+        ends up somewhere new — the bundle lands exactly back on itself. That is the test for a
+        valid turning axis, and it is why the face alone can turn.</div>
+      <label>Rotate about</label>
+      <select id="axisSel"></select>
+      <label>&nbsp;</label>
+      <button class="act primary" id="spin">Rotate the cube 90°</button>
+      <p class="hint">Or <b>click any arrow</b> in the view to rotate about it.</p>
+      <div class="readout">
+        <div class="big" id="nrays">6 axes</div>
+        <div id="permTitle" style="color:var(--muted);font-size:12px;">where each arrow goes</div>
+        <div class="perm" id="perm"></div>
+      </div>
+      <p class="hint">Each turn is a <b>permutation</b> of the six arrows: the turning axis
+        stays put, the four around it cycle, and the opposite one stays put too. Different
+        turn, different shuffle — but always a shuffle of the same six.</p>
+    </div>
+
+    <!-- ACT 2 -->
+    <div id="act2" style="display:none;">
+      <div class="why warn"><b>Now break it.</b> Add a seventh axis pointing wherever you
+        like. Turn the cube — and watch where that new arrow lands. If it lands where no
+        arrow was, the mechanism <b>jams</b>: a cut plane would run into the middle of a piece.</div>
+      <label>Extra axis — tilt <span class="val" id="thv">45°</span></label>
+      <input type="range" id="th" min="0" max="180" step="1" value="45"/>
+      <label>Extra axis — spin around <span class="val" id="phv">45°</span></label>
+      <input type="range" id="ph" min="0" max="360" step="1" value="45"/>
+      <label>Rotate about</label>
+      <select id="axisSel2"></select>
+      <label>&nbsp;</label>
+      <button class="act primary" id="test">Rotate 90° and see</button>
+      <div class="readout">
+        <div class="big" id="setsize">7 axes</div>
+        <div class="verdict" id="verdict">—</div>
+        <div id="explain" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
+      </div>
+      <label>&nbsp;</label>
+      <button class="act" id="addfam">Add its whole family →</button>
+      <p class="hint">The only fix is to add <b>every</b> arrow the turns send it to. Do that
+        and the bundle closes up again — but notice the family is never size 7. It is
+        <b>6, 8, 12, or 24</b>. You cannot choose the size; the cube chooses it for you.
+        <b>That</b> is why only finitely many bundles exist.</p>
+      <button class="act" id="reset" style="margin-top:10px;">Reset to one extra axis</button>
+    </div>
+  </div>
+</div>
+
+<script src="three.min.js"></script>
+<script src="OrbitControls.js"></script>
+<script>
+const FACE=[ {v:[0,1,0],n:'U'},{v:[0,-1,0],n:'D'},{v:[0,0,1],n:'F'},
+             {v:[0,0,-1],n:'B'},{v:[1,0,0],n:'R'},{v:[-1,0,0],n:'L'} ];
+const C_FACE=0x4cc9f0, C_AXIS=0xffffff, C_EXTRA=0xff9f43, C_MISS=0xff5c5c;
+const V=(a)=>new THREE.Vector3(a[0],a[1],a[2]);
+const EPS=1e-6;
+
+// ---- scene ----
+const view=document.getElementById('view');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x0b0e14);
+const cam=new THREE.PerspectiveCamera(45,1,0.01,100); cam.position.set(3.0,2.2,3.0);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setPixelRatio(devicePixelRatio);
+view.appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(cam,renderer.domElement); controls.enableDamping=true;
+scene.add(new THREE.AmbientLight(0xffffff,0.75));
+const key=new THREE.DirectionalLight(0xffffff,0.55); key.position.set(1,1.4,1); scene.add(key);
+
+// the cube itself: translucent body + crisp edges
+const cube=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2),
+  new THREE.MeshStandardMaterial({color:0x2b3446,roughness:1,transparent:true,opacity:0.5}));
+scene.add(cube);
+scene.add(new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.2,1.2,1.2)),
+  new THREE.LineBasicMaterial({color:0x6b7891})));
+
+const bundle=new THREE.Group(); scene.add(bundle);   // holds arrows; spun during animation
+const RAYLEN=1.75;
+
+function label(text,pos,color){                       // small canvas-texture sprite
+  const c=document.createElement('canvas'); c.width=c.height=128;
+  const g=c.getContext('2d'); g.fillStyle=color; g.font='bold 76px sans-serif';
+  g.textAlign='center'; g.textBaseline='middle'; g.fillText(text,64,68);
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),transparent:true}));
+  s.position.copy(pos); s.scale.set(0.42,0.42,0.42); return s;
+}
+
+// ---- state ----
+let rays=FACE.map(f=>({v:V(f.v).normalize(), n:f.n, extra:false}));
+let axisIdx=0, act=1, misses=[], busy=false;
+
+function drawBundle(){
+  while(bundle.children.length){const c=bundle.children.pop(); if(c.geometry)c.geometry.dispose();}
+  rays.forEach((r,i)=>{
+    const isAxis = (i===axisIdx);
+    const col = isAxis ? C_AXIS : (r.extra ? C_EXTRA : C_FACE);
+    bundle.add(new THREE.ArrowHelper(r.v,new THREE.Vector3(0,0,0),RAYLEN,col,0.17,isAxis?0.105:0.078));
+    if(r.n) bundle.add(label(r.n, r.v.clone().multiplyScalar(RAYLEN+0.22), '#e6e9ef'));
+  });
+  misses.forEach(m=>{                                  // where an arrow landed with nothing there
+    bundle.add(new THREE.ArrowHelper(m,new THREE.Vector3(0,0,0),RAYLEN,C_MISS,0.2,0.12));
+    bundle.add(label('✕', m.clone().multiplyScalar(RAYLEN+0.26), '#ff5c5c'));
+  });
+}
+
+// rotation matrix about a ray, and the group generated by the six 90° face turns
+const rotM=(axis,ang)=>new THREE.Matrix4().makeRotationAxis(axis,ang);
+function faceGroup(){
+  const mk=v=>rotM(V(v).normalize(),Math.PI/2);
+  const gens=[mk([1,0,0]),mk([0,1,0]),mk([0,0,1])];
+  const k=m=>m.elements.map(x=>Math.round(x*1e3)/1e3).join(',');
+  const out=[new THREE.Matrix4()], seen=new Set([k(new THREE.Matrix4())]);
+  for(let i=0;i<out.length;i++) for(const g of gens){
+    const m=new THREE.Matrix4().multiplyMatrices(g,out[i]);
+    if(!seen.has(k(m))){seen.add(k(m)); out.push(m);}
+  }
+  return out;                                          // 24 rotations of the cube
+}
+const GROUP=faceGroup();
+
+const has=(set,w)=>set.some(r=>r.v.distanceTo(w)<1e-4);
+function landedOutside(set,g){                         // images that hit empty space
+  const out=[];
+  set.forEach(r=>{const w=r.v.clone().applyMatrix4(g); if(!has(set,w)) out.push(w);});
+  return out;
+}
+
+// ---- animation of a turn ----
+function turn(onDone){
+  if(busy) return; busy=true; misses=[]; drawBundle();
+  const ax=rays[axisIdx].v.clone(), dur=620, t0=performance.now();
+  (function step(now){
+    const t=Math.min(1,(now-t0)/dur), e=t<0.5?2*t*t:1-((-2*t+2)**2)/2;   // ease in/out
+    bundle.setRotationFromMatrix(rotM(ax,e*Math.PI/2));
+    if(t<1) requestAnimationFrame(step);
+    else{
+      bundle.setRotationFromMatrix(new THREE.Matrix4());
+      const g=rotM(ax,Math.PI/2);
+      rays=rays.map(r=>({...r, v:r.v.clone().applyMatrix4(g)}));         // snap to the new positions
+      rays.forEach(r=>r.v.set(+r.v.x.toFixed(9),+r.v.y.toFixed(9),+r.v.z.toFixed(9)));
+      busy=false; onDone&&onDone(g);
+    }
+  })(performance.now());
+}
+
+function banner(text,color){
+  const b=document.getElementById('banner');
+  b.textContent=text; b.style.color=color; b.style.opacity=1;
+  clearTimeout(banner._t); banner._t=setTimeout(()=>b.style.opacity=0,2200);
+}
+
+// ---- act 1: the permutation ----
+function showPerm(){
+  const ax=rays[axisIdx].v.clone(), g=rotM(ax,Math.PI/2);
+  const named=rays.filter(r=>r.n);
+  const rows=named.map(r=>{
+    const w=r.v.clone().applyMatrix4(g);
+    const to=named.find(o=>o.v.distanceTo(w)<1e-4);
+    return `<b>${r.n}</b> → <b>${to?to.n:'✕ nowhere'}</b>`;
+  });
+  document.getElementById('perm').innerHTML=rows.join('<br>');
+}
+
+// ---- act 2: the extra axis ----
+function extraDir(){
+  const th=+document.getElementById('th').value*Math.PI/180;
+  const ph=+document.getElementById('ph').value*Math.PI/180;
+  return new THREE.Vector3(Math.sin(th)*Math.cos(ph),Math.cos(th),Math.sin(th)*Math.sin(ph)).normalize();
+}
+function setExtra(dirs){                               // rebuild = 6 faces + the given extras
+  rays=FACE.map(f=>({v:V(f.v).normalize(),n:f.n,extra:false}))
+    .concat(dirs.map(d=>({v:d.clone(),n:null,extra:true})));
+  if(axisIdx>=rays.length) axisIdx=0;
+  misses=[]; drawBundle(); refresh();
+}
+function orbitOf(v){
+  const out=[];
+  GROUP.forEach(m=>{const w=v.clone().applyMatrix4(m);
+    if(!out.some(u=>u.distanceTo(w)<1e-4)) out.push(w);});
+  return out;
+}
+
+function refresh(){
+  const n=rays.length;
+  document.getElementById('nrays').textContent=n+' axes';
+  document.getElementById('setsize').textContent=n+' axes';
+  document.getElementById('caption').innerHTML = act===1
+    ? `Six face axes. Rotating the whole cube about <b style="color:#fff">${rays[axisIdx].n||'the extra axis'}</b> shuffles them among themselves.`
+    : `Six face axes + ${n-6} extra. Rotate the whole cube and watch whether every arrow lands on another arrow.`;
+  if(act===1) showPerm();
+  drawBundle();
+}
+
+function fillAxisSelects(){
+  [['axisSel'],['axisSel2']].forEach(([id])=>{
+    const s=document.getElementById(id); s.innerHTML='';
+    rays.forEach((r,i)=>{const o=document.createElement('option');
+      o.value=i; o.textContent=r.n?`the ${r.n} axis`:'the extra axis'; s.appendChild(o);});
+    s.value=Math.min(axisIdx,rays.length-1);
+  });
+}
+
+// ---- wiring ----
+function setAct(a){
+  act=a;
+  document.getElementById('a1').classList.toggle('active',a===1);
+  document.getElementById('a2').classList.toggle('active',a===2);
+  document.getElementById('act1').style.display=a===1?'':'none';
+  document.getElementById('act2').style.display=a===2?'':'none';
+  if(a===1) setExtra([]); else setExtra([extraDir()]);
+  fillAxisSelects(); refresh();
+}
+document.getElementById('a1').onclick=()=>setAct(1);
+document.getElementById('a2').onclick=()=>setAct(2);
+
+document.getElementById('axisSel').onchange=e=>{axisIdx=+e.target.value; refresh();};
+document.getElementById('axisSel2').onchange=e=>{axisIdx=+e.target.value; refresh();};
+document.getElementById('spin').onclick=()=>turn(()=>{refresh(); banner('↻ lands on itself','#37d67a');});
+
+['th','ph'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{
+  document.getElementById(id==='th'?'thv':'phv').textContent=document.getElementById(id).value+'°';
+  setExtra([extraDir()]); fillAxisSelects();
+  document.getElementById('verdict').textContent='—';
+  document.getElementById('explain').textContent='';
+}));
+
+document.getElementById('test').onclick=()=>{
+  if(busy) return;
+  const before=rays.map(r=>({...r,v:r.v.clone()}));    // judge closure against the PRE-turn bundle
+  const out=landedOutside(before, rotM(before[axisIdx].v.clone(),Math.PI/2));
+  turn(()=>{
+  misses=out; drawBundle(); refresh();
+  const v=document.getElementById('verdict'), x=document.getElementById('explain');
+  if(out.length){
+    v.textContent='✕ It jams.'; v.className='verdict no';
+    x.innerHTML=`${out.length} arrow${out.length>1?'s':''} landed where no axis was `
+      +`(marked <b style="color:#ff5c5c">✕</b>). A cut about that direction would slice `
+      +`through the middle of a piece.`;
+    banner('✕ jams — no axis there','#ff5c5c');
+  } else {
+    v.textContent='✓ It closes.'; v.className='verdict ok';
+    x.textContent='Every arrow landed on another arrow. This bundle is a legal axis system.';
+    banner('↻ lands on itself','#37d67a');
+  }
+  });
+};
+
+document.getElementById('addfam').onclick=()=>{
+  const seed=rays.find(r=>r.extra); if(!seed) return;
+  const orb=orbitOf(seed.v).filter(w=>!FACE.some(f=>V(f.v).normalize().distanceTo(w)<1e-4));
+  setExtra(orb); fillAxisSelects();
+  const v=document.getElementById('verdict'), x=document.getElementById('explain');
+  v.textContent=`Family of ${orb.length}.`; v.className='verdict ok';
+  x.innerHTML=`Added every arrow the turns send it to — now the bundle closes. `
+    +`Family sizes here are only ever <b>6, 8, 12 or 24</b>.`;
+  banner(`family of ${orb.length} added`,'#ff9f43');
+};
+document.getElementById('reset').onclick=()=>{setExtra([extraDir()]); fillAxisSelects();
+  document.getElementById('verdict').textContent='—'; document.getElementById('explain').textContent='';};
+
+// click an arrow in the view to make it the turning axis
+renderer.domElement.addEventListener('click',e=>{
+  const b=renderer.domElement.getBoundingClientRect();
+  const m=new THREE.Vector2(((e.clientX-b.left)/b.width)*2-1, -((e.clientY-b.top)/b.height)*2+1);
+  const rc=new THREE.Raycaster(); rc.setFromCamera(m,cam);
+  let best=-1,bd=0.3;
+  rays.forEach((r,i)=>{const p=r.v.clone().multiplyScalar(RAYLEN);
+    const d=rc.ray.distanceToPoint(p); if(d<bd){bd=d;best=i;}});
+  if(best>=0){axisIdx=best; fillAxisSelects(); refresh(); if(act===1) turn(()=>{refresh();banner('↻ lands on itself','#37d67a');});}
+});
+
+function resize(){const w=view.clientWidth,h=view.clientHeight;
+  renderer.setSize(w,h); cam.aspect=w/h; cam.updateProjectionMatrix();}
+window.addEventListener('resize',resize);
+setAct(1); resize();
+(function loop(){requestAnimationFrame(loop); controls.update(); renderer.render(scene,cam);})();
+</script>
+</body>
+</html>
